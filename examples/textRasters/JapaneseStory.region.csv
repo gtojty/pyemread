@@ -1,0 +1,42 @@
+Name,Language,WordID,Word,length,height,baseline,line_no,x1_pos,y1_pos,x2_pos,y2_pos,b_x1,b_y1,b_x2,b_y2
+JapaneseStory,Japanese,1,むかし、,4,18,95,1,215,100,287,118,215,78,287,140
+JapaneseStory,Japanese,2,むかし、,4,18,95,1,287,100,359,118,287,78,359,140
+JapaneseStory,Japanese,3,ある,2,18,95,1,359,100,395,118,359,78,395,140
+JapaneseStory,Japanese,4, ところ,4,18,95,1,395,100,453,118,395,78,453,140
+JapaneseStory,Japanese,5, に,2,18,95,1,453,100,475,118,453,78,475,140
+JapaneseStory,Japanese,6,おじいさん,5,18,160,2,215,165,305,183,215,143,305,205
+JapaneseStory,Japanese,7, と,2,18,160,2,305,165,327,183,305,143,327,205
+JapaneseStory,Japanese,8, おばあさん,6,18,160,2,327,165,421,183,327,143,421,205
+JapaneseStory,Japanese,9, が,2,18,160,2,421,165,443,183,421,143,443,205
+JapaneseStory,Japanese,10, いました。,6,18,160,2,443,165,537,183,443,143,537,205
+JapaneseStory,Japanese,11,おじいさん,5,18,225,3,215,230,305,248,215,208,305,270
+JapaneseStory,Japanese,12, が,2,18,225,3,305,230,327,248,305,208,327,270
+JapaneseStory,Japanese,13, 山（やま）,6,18,225,3,327,230,421,248,327,208,421,270
+JapaneseStory,Japanese,14, へ,2,18,225,3,421,230,443,248,421,208,443,270
+JapaneseStory,Japanese,15, 木（き）,5,18,225,3,443,230,519,248,443,208,519,270
+JapaneseStory,Japanese,16, を,2,18,225,3,519,230,541,248,519,208,541,270
+JapaneseStory,Japanese,17, きり,3,18,225,3,541,230,581,248,541,208,581,270
+JapaneseStory,Japanese,18, に,2,18,225,3,581,230,603,248,581,208,603,270
+JapaneseStory,Japanese,19, いけば、,5,18,225,3,603,230,679,248,603,208,679,270
+JapaneseStory,Japanese,20,おばあさん,5,18,290,4,215,295,305,313,215,273,305,335
+JapaneseStory,Japanese,21, は,2,18,290,4,305,295,327,313,305,273,327,335
+JapaneseStory,Japanese,22, 川（かわ）,6,18,290,4,327,295,421,313,327,273,421,335
+JapaneseStory,Japanese,23, へ,2,18,290,4,421,295,443,313,421,273,443,335
+JapaneseStory,Japanese,24, せんたく,5,18,290,4,443,295,519,313,443,273,519,335
+JapaneseStory,Japanese,25, に,2,18,290,4,519,295,541,313,519,273,541,335
+JapaneseStory,Japanese,26, でかけます。,7,18,290,4,541,295,651,313,541,273,651,335
+JapaneseStory,Japanese,27,「おじいさん、,7,18,355,5,215,360,341,378,215,338,341,400
+JapaneseStory,Japanese,28,はよう,3,18,355,5,341,360,395,378,341,338,395,400
+JapaneseStory,Japanese,29, もどって,5,18,355,5,395,360,470,378,395,338,470,400
+JapaneseStory,Japanese,30, きなされ。」,7,18,355,5,470,360,582,378,470,338,582,400
+JapaneseStory,Japanese,31,「おばあさん,6,18,420,6,215,425,323,443,215,403,323,465
+JapaneseStory,Japanese,32, も,2,18,420,6,323,425,345,443,323,403,345,465
+JapaneseStory,Japanese,33, き,2,18,420,6,345,425,367,443,345,403,367,465
+JapaneseStory,Japanese,34, を,2,18,420,6,367,425,389,443,367,403,389,465
+JapaneseStory,Japanese,35, つけて,4,18,420,6,389,425,447,443,389,403,447,465
+JapaneseStory,Japanese,36, な。」,4,18,420,6,447,425,505,443,447,403,505,465
+JapaneseStory,Japanese,37,まい日（にち）,7,18,485,7,215,490,341,508,215,468,341,530
+JapaneseStory,Japanese,38, やさしく,5,18,485,7,341,490,417,508,341,468,417,530
+JapaneseStory,Japanese,39, いい,3,18,485,7,417,490,457,508,417,468,457,530
+JapaneseStory,Japanese,40, あって,4,18,485,7,457,490,514,508,457,468,514,530
+JapaneseStory,Japanese,41, でかけます。,7,18,485,7,514,490,624,508,514,468,624,530
