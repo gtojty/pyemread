@@ -1,41 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-Pyemread: A Python package for multi-line text reading eye movement experiments
+pyemread — Python package for multi-line text reading eye-movement experiments.
 
-This package provides comprehensive tools for:
-1. Generating bitmaps and region files for single/multi-line text reading experiments
-2. Extracting and classifying saccades/fixations from eye-tracker data
-3. Calculating eye-movement metrics used in reading research
-4. Visualizing and animating eye-movement data
-
-Version: 2.1.1
-Authors: Tao Gong, David Braze
-License: MIT
-
-Modules:
-    gen - Generate bitmaps, region files, and visualizations
-    ext - Extract and classify eye-movement data from ASCII files
-    cal - Calculate eye-movement measures
-
-Example usage:
-    import pyemread as pr
-    
-    # Generate bitmap and region file
-    pr.gen.praster(direct, fontpath, st_pos, lang_type, text=text_lines)
-    
-    # Extract saccades and fixations from ASCII file
-    sac_df, fix_df = pr.ext.read_srrasc(direct, subj_id, 'RAN')
-    
-    # Calculate eye-movement measures
-    pr.cal.cal_write_em(direct, subj_id, regfile_list)
+Modules
+-------
+gen           : stimulus bitmaps, region files, and visualisations.
+ext           : SR-Research (EyeLink) ASC parsing and event extraction.
+ext_generic   : tracker-agnostic [t, x, y] raw-gaze processing (I-VT / I-DT);
+                direct loaders for Tobii, SMI, Pupil Labs, and WebGazer.
+ext_robust    : parameter tuning and edge-case handling for the cross-line
+                classifier (pre-scan detection, orphan reclassification,
+                sensitivity reports).
+cal           : computation of first-pass, regression-path and second-pass
+                eye-movement metrics.
 """
 
-__all__ = ["gen", "ext", "cal"]
-__version__ = "2.1.1"
-__author__ = "Tao Gong, David Braze"
+__version__ = "2.1.0"
+__author__ = "Tao Gong"
 __email__ = "gtojty@gmail.com"
 __license__ = "MIT"
 
-from . import gen
-from . import ext
-from . import cal
+__all__ = ["gen", "ext", "ext_generic", "ext_robust", "cal"]
+
+# Import sub-modules, but don't let an import failure in one block the others.
+# This matters for environments that install the lightweight raw-gaze side of
+# pyemread without the ASC-parsing / ffmpeg dependencies.
+import warnings as _warnings
+
+for _name in __all__:
+    try:
+        __import__(f"{__name__}.{_name}")
+    except Exception as _exc:                               # pragma: no cover
+        _warnings.warn(f"pyemread.{_name} could not be imported: {_exc}")
