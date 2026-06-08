@@ -6,7 +6,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Version](https://img.shields.io/badge/version-2.1.0-green.svg)](https://github.com/gtojty/pyemread/releases)
 
-`pyemread` takes multi-line reading experiments end-to-end: it generates pixel-accurate stimulus bitmaps with matching word-level regions of interest, parses **EyeLink ASC files or raw `[t, x, y]` samples from any other tracker**, classifies events into text lines using a temporally-informed heuristic, and computes 18 per-word eye-movement metrics. The cross-line classifier follows the temporal sequence of fixations rather than fitting geometry to a fixation cloud, recovering 96.2 % of forward and 93.8 % of backward cross-line moves on hand-coded data (Gong & Shuai, 2023).
+`pyemread` takes multi-line reading experiments end-to-end: it generates pixel-accurate stimulus bitmaps with matching word-level regions of interest, parses **EyeLink ASC files or raw `[t, x, y]` samples from any other tracker**, classifies events into text lines using a temporally-informed heuristic, and computes 18 per-word eye-movement metrics. The cross-line classifier follows the temporal sequence of fixations rather than fitting geometry to a fixation cloud, recovering 96.2 % of forward return-sweep transitions and 93.8 % of across-line regressions on hand-coded data (Gong & Shuai, 2023).
 
 For the complete API listing — every function with parameters, return values, and examples — see **[API_REFERENCE.md](API_REFERENCE.md)**.
 
@@ -16,7 +16,7 @@ For the complete API listing — every function with parameters, return values, 
 
 - **Tracker-agnostic raw-gaze input.** A new `ext_generic` module reads raw `[t, x, y]` samples from any eye tracker and performs event detection with I-VT (velocity-threshold) or I-DT (dispersion-threshold) algorithms. Format-specific loaders are provided for Tobii Pro Lab, Pupil Labs, SMI RED/iView, and WebGazer.js.
 - **Parameter tuning and edge-case handling.** A new `ext_robust` module supplies automatic parameter recommendation, pre-scan detection, orphan-fixation reclassification, and parameter-sensitivity reports.
-- **Real-data validated.** Sensitivity analysis on 1,195 real fixations (3 subjects × 2 passages from Gong & Shuai 2023) confirms the defaults are safe across an 8-percent parameter band; data-driven recommender returns `diff_ratio = 0.68` on this corpus.
+- **Real-data validated.** Sensitivity analysis on 1,195 real fixations (3 subjects × 2 passages from Gong & Shuai 2023) confirms the defaults are safe across an 8-percent parameter band; data-driven recommender returns `diff_ratio = 0.65` on this corpus.
 - **Cross-platform animations.** MP4 video generation via `matplotlib.animation` + FFmpeg replaces the Windows-only `turtle` + `winsound` backend used before v2.0.
 
 See the [Changelog](#changelog) for the full list.
@@ -156,7 +156,7 @@ FixDF = pd.read_csv('./data/P01_Fix.csv')
 # Data-driven parameter recommendation
 rec = er.recommend_diff_ratio(reg, FixDF)
 print(rec)
-# {'diff_ratio': 0.68, 'frontrange_ratio': 0.25, ...}
+# {'diff_ratio': 0.65, 'frontrange_ratio': 0.25, ...}
 ```
 
 ---
@@ -294,7 +294,7 @@ FixDF = pd.read_csv('./data/P01_Fix.csv')
 
 # 1. Data-driven recommendation
 rec = er.recommend_diff_ratio(reg, FixDF)
-# {'diff_ratio': 0.68, 'frontrange_ratio': 0.25, 'line_extent_px': 667, ...}
+# {'diff_ratio': 0.65, 'frontrange_ratio': 0.25, 'line_extent_px': 729, ...}
 
 # 2. Parameter-sensitivity report (Cohen's kappa vs default)
 def classify(diff_ratio, frontrange_ratio):
@@ -318,7 +318,7 @@ FixDF_clean = er.mask_prescan_fixations(FixDF, reg)
 FixDF_fixed = er.reclassify_orphans(FixDF_clean, reg)
 ```
 
-On 1,195 pooled real fixations from three subjects of Gong and Shuai (2023), Cohen's κ stays ≥ 0.80 across 67 % of the parameter grid; the data-driven recommender returns `diff_ratio = 0.68` and `frontrange_ratio = 0.25`, slightly more conservative than the defaults but inside the high-κ band. See Figure 5 of the accompanying SoftwareX paper.
+On 1,195 pooled real fixations from three subjects of Gong and Shuai (2023), Cohen's κ stays ≥ 0.80 across 67 % of the parameter grid; the data-driven recommender returns `diff_ratio = 0.65` and `frontrange_ratio = 0.25`, both inside the high-κ band. See Figure 5 of the accompanying paper.
 
 ---
 
@@ -413,14 +413,14 @@ A few high-frequency entry points to get you started:
 If you use `pyemread` in your research, please cite:
 
 ```bibtex
-@article{gong2026pyemread,
+@misc{gong2026pyemread,
   title   = {pyemread: a Python package for multi-line text reading
              eye-movement experiments with a temporally-informed
              cross-line classifier and tracker-agnostic gaze input},
   author  = {Gong, Tao},
-  journal = {SoftwareX},
   year    = {2026},
-  note    = {In review},
+  version = {2.1.1},
+  doi     = {10.5281/zenodo.19622178},
   url     = {https://github.com/gtojty/pyemread},
 }
 ```
@@ -471,6 +471,6 @@ If you use `pyemread` in your research, please cite:
 Example data in `examples/oralReading/` are included with the permission of D. Braze (Haskins Laboratories).
 
 **Tao Gong** — <gtojty@gmail.com>
-School of Foreign Languages, Zhejiang University of Finance and Economics, Hangzhou, China.
+Haskins Laboratories, Yale University, New Haven, CT, USA (work). Present address: Travelers, Hartford, CT, USA.
 
 Bug reports and feature requests: <https://github.com/gtojty/pyemread/issues>
