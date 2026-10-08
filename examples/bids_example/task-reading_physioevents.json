@@ -1,0 +1,20 @@
+{
+  "Columns": [
+    "onset",
+    "duration",
+    "trial_type",
+    "blink",
+    "message"
+  ],
+  "onset": {
+    "Units": "s"
+  },
+  "duration": {
+    "Units": "s"
+  },
+  "trial_type": {
+    "Levels": {
+      "fixation": "Fixation detected by the EyeLink parser"
+    }
+  }
+}
