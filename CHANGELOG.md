@@ -11,7 +11,7 @@ Installation and maintenance
 Line assignment (`pyemread.lines`, `ext.classify_fixations`)
 - New default method `SLICE` (Glandorf & Schroeder, 2021; adapted from Carr et al., 2022). The original heuristic remains available as `DIFF` and `SAC`; `NEAREST` and `PROVIDED` (line numbers corrected elsewhere) were added. The method can be chosen per trial.
 - Trials on which `SLICE` and `DIFF` disagree on more than 10% of fixations are flagged (`ext_robust.trial_report`, `gen.draw_line_assignment`).
-- `ext.process_subject` reads, classifies and writes a participant's data in one call. `ext.cal_crl_sac_fix(..., write=True)` writes its results; previously the classified tables were returned but never written, so `cal.cal_write_EM` read unclassified fixations and returned empty measures.
+- `ext.process_subject` reads, classifies and writes a participant's data in one call. `ext.cal_crl_sac_fix` has a `write` option; previously the classified tables were returned but never written, so `cal.cal_write_EM` read unclassified fixations and returned empty measures.
 
 Reading measures (`pyemread.cal`)
 - `cal_write_em` raises an error if the fixations have not been assigned to lines, and accepts in-memory tables (`fix_df=`, `sac_df=`).
@@ -28,8 +28,10 @@ Input from other trackers (`pyemread.ext_generic`)
 
 Diagnostics (`pyemread.ext_robust`)
 - `trial_report` replaces `recommend_diff_ratio` and `reclassify_orphans`, which were removed.
+- The old "crlFix start/end need check" messages, which inspected only the first and last line changes, are now logged at the debug level only.
 
 Stimuli and animations (`pyemread.gen`)
+- Portuguese and Polish were added to the space-separated languages, so the twelve languages listed in the documentation match the code.
 - `praster` creates its output folder. `animate` finds the bitmap and audio of a trial by name, and videos are written to the participant's folder. MoviePy is no longer used.
 
 ## 2.1.1 and earlier

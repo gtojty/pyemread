@@ -623,7 +623,7 @@ def _get_crossline_fix(crossline_info: List[Dict], startline: int, endline: int,
     question = False
     if lines and (lines[0][0] == -1 or lines[-1][0] == -1 or 
                   lines[-1][2] != crossline_info[-1]['n']):
-        _log.warning('Warning! crlFix start/end need check!')
+        _log.debug('DIFF: first or last line change is irregular (crlFix).')
         question = True
     
     return lines, curline, question
@@ -1137,7 +1137,7 @@ def _get_crossline_sac(crossline_info: List[Dict], startline: int, endline: int,
     question = False
     if lines and (lines[0][0] == -1 or lines[-1][0] == -1 or 
                   lines[-1][2] != crossline_info[-1]['n']):
-        _log.warning('Warning! crlSac start/end need check!')
+        _log.debug('DIFF: first or last line change is irregular (crlSac).')
         question = True
     
     return lines, curline, question

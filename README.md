@@ -37,13 +37,20 @@ python examples/example_workflow.py      # the complete tutorial
 pytest                                   # the test suite
 ```
 
-The core of the tutorial:
+The core of the tutorial, run from the repository root:
 
 ```python
+import shutil
+from pathlib import Path
 from pyemread import cal, ext, ext_robust
 
 regions = ["story01.region.csv", "story02.region.csv", "story03.region.csv"]
-# expects data/story0*.region.csv and data/1950138/1950138.asc
+data = Path("data")                                   # a working copy of the example data
+(data / "1950138").mkdir(parents=True, exist_ok=True)
+for r in regions:
+    shutil.copy(f"examples/oralReading/{r}", data / r)
+shutil.copy("examples/oralReading/1950138/1950138.asc", data / "1950138")
+
 sac, crl_sac, fix, crl_fix = ext.process_subject("data", "1950138", regions)
 report = ext_robust.trial_report(fix, ext.load_regions("data", regions))
 print(report[["trial_id", "eye", "agree_slice_diff", "flag"]])   # trials to inspect

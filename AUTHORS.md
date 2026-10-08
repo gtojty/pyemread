@@ -1,6 +1,9 @@
 # Authors and contributors
 
-**Tao Gong** wrote and maintains all of the Python code in this package.
+**Tao Gong** wrote and maintains the Python code in this package, with the
+assistance of a generative AI tool, as declared in the accompanying article.
+No other person wrote code for the package; the one exception is the adapted
+`slice` implementation described below.
 
 **David Braze**, the author's supervisor at Haskins Laboratories, wrote the
 in-house C/C++ programs for eye-movement analysis from which pyemread was

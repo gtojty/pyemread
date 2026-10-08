@@ -64,7 +64,9 @@ import math
 
 
 # Global variables for language types
-ENG_LANG_LIST = ['English', 'French', 'German', 'Dutch', 'Spanish', 'Italian', 'Greek']
+ENG_LANG_LIST = ['English', 'French', 'German', 'Dutch', 'Spanish', 'Italian', 'Greek',
+                 'Portuguese', 'Polish']
+"""Languages whose words are separated by spaces."""
 CHN_LANG_LIST = ['Chinese']
 KJ_LANG_LIST = ['Korean', 'Japanese']
 PUNC_LIST = ['，', '。', '、', '：', '？', '！']
@@ -473,37 +475,71 @@ def praster(direct: str, fontpath: str, st_pos: str, lang_type: str,
             ID: str = 'test',
             addspace: int = 18,
             log: bool = False) -> None:
-    """
-    Rasterize text using specified font according to the given parameters.
-    
-    Generates a bitmap image of single or multiple line text, along with
-    an optional CSV region file specifying word boundaries.
-    
-    Args:
-        direct: Directory to store bitmap and/or region file
-        fontpath: Fully qualified path to font file
-        st_pos: Starting position - 'TopLeft', 'Center', or 'Auto'
-        lang_type: Language type - 'English', 'Korean', 'Chinese', 'Japanese', etc.
-        code_method: Encoding method (default: 'utf-8')
-        text: List of text lines to be rasterized
-        dim: (x, y) dimension of bitmap
-        fg: RGB font color
-        bg: RGB background color
-        wfont: Font for watermark (optional)
-        regfile: Whether to create word-wise region file
-        lmargin: Left margin in pixels
-        tmargin: Top margin in pixels
-        linespace: Line spacing in pixels (baseline to baseline)
-        fht: Font height in pixels
-        fwd: Target character width in pixels (takes precedence over fht)
-        bbox: Draw bounding box around each word
-        bbox_big: Draw bounding box around entire line
-        ID: Unique ID for stimulus, used in filenames
-        addspace: Extra pixels above/below each line
-        log: Enable logging of intermediate results
-        
-    Raises:
-        ValueError: If text is not a list or if language type is invalid
+    """Render a text passage as a stimulus bitmap and write its region file.
+
+    Generates a bitmap image of single- or multi-line text and, optionally,
+    a CSV region file with the bounding box and line number of every word
+    (the word-level areas of interest used by the rest of the pipeline).
+
+    Parameters
+    ----------
+    direct : str
+        Output directory (created if needed).
+    fontpath : str
+        Path to a TrueType/OpenType font file.
+    st_pos : {'TopLeft', 'Center', 'Auto'}
+        Anchor of the text on the screen.
+    lang_type : str
+        Language: one of ``ENG_LANG_LIST`` (space-separated scripts),
+        ``'Chinese'`` (word boundaries marked with ``|``), ``'Japanese'`` or
+        ``'Korean'``.
+    code_method : str, default 'utf-8'
+        Text encoding.
+    text : list of str
+        Lines of the passage, exactly as they should appear on screen.
+    dim : tuple of int, default (1280, 1024)
+        Bitmap size in pixels (x, y).
+    fg, bg : tuple of int
+        RGB font and background colors.
+    wfont : str, optional
+        Font for a watermark.
+    regfile : bool, default True
+        Whether to write the region file.
+    lmargin, tmargin : int
+        Left and top margins in pixels.
+    linespace : int, default 65
+        Line spacing in pixels (baseline to baseline).
+    fht : int, default 18
+        Font height in pixels.
+    fwd : int, optional
+        Target character width in pixels (takes precedence over ``fht``).
+    bbox, bbox_big : bool, default False
+        Draw a box around each word, or around each line.
+    ID : str, default 'test'
+        Stimulus identifier, used in the file names.
+    addspace : int, default 18
+        Extra pixels above and below each line in the word boxes.
+    log : bool, default False
+        Write intermediate results to a log file.
+
+    Returns
+    -------
+    None
+        Writes ``<direct>/<ID>.png`` and, if ``regfile`` is True,
+        ``<direct>/<ID>.region.csv``.
+
+    Raises
+    ------
+    ValueError
+        If ``text`` is not a list or the language is not supported.
+
+    Examples
+    --------
+    >>> from matplotlib import font_manager
+    >>> font = font_manager.findfont("DejaVu Sans Mono")
+    >>> praster("stimuli", font, "TopLeft", "English",
+    ...         text=["The quick brown fox", "jumps over the lazy dog."],
+    ...         ID="demo")  # doctest: +SKIP
     """
     if not isinstance(text, (list, tuple)):
         raise ValueError("text argument must be a list of text string(s), not a bare string!")

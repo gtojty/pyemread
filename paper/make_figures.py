@@ -46,7 +46,7 @@ def label(ax, s):
 def fig1_architecture():
     fig, ax = plt.subplots(figsize=(7.2, 5.4))
     ax.set_xlim(0, 30); ax.set_ylim(0, 23.5); ax.axis("off")
-    col = {"input": "#e8e8e8", "stim": "#cfe0f1", "extract": "#fff1cc",
+    col = {"input": "#e8e8e8", "stim": "#cfe0f1", "extract": "#e4dcf2",
            "assign": "#f4d3d3", "measure": "#d9ead3", "output": "#fde29b"}
 
     def box(x, y, w, h, kind, title, body=""):
@@ -224,7 +224,9 @@ def fig5_validation():
     acc = pd.read_csv(RES / "carr_accuracy.csv")
     acc = acc[acc.method != "slice"]                 # Carr et al.'s slice output ~ pyemread_slice
     order = (acc.groupby("method").acc_kept.mean().sort_values(ascending=False).index.tolist())
-    names = {m: m.replace("pyemread_", "pyemread ") for m in order}
+    # algorithm names in italics; pyemread's own methods in bold
+    names = {m: (r"$\mathbf{pyemread}$ $\mathbfit{%s}$" % m[9:] if m.startswith("pyemread_")
+                 else r"$\mathit{%s}$" % m) for m in order}
     sims = pd.read_csv(RES / "simulations.csv") if (RES / "simulations.csv").exists() else None
     fig = plt.figure(figsize=(7.2, 8.0))
     ax = fig.add_axes([0.10, 0.60, 0.88, 0.37])
@@ -239,9 +241,6 @@ def fig5_validation():
                     color="k", lw=1.2)
     ax.set_xticks(range(len(order)))
     ax.set_xticklabels([names[m] for m in order], rotation=45, ha="right")
-    for lab in ax.get_xticklabels():
-        if lab.get_text().startswith("pyemread"):
-            lab.set_fontweight("bold")
     ax.set_ylabel("Fixations on the correct line (%)"); ax.set_ylim(-3, 103)
     ax.legend(loc="lower left", fontsize=7, frameon=False)
     label(ax, "(a)")
@@ -259,7 +258,7 @@ def fig5_validation():
             for m in show:
                 gm = g[g.method == m]
                 a2.plot(gm.level, gm.accuracy, color=styles[m][0], ls=styles[m][1], lw=1.2,
-                        label=names.get(m, m).replace("pyemread_", "pyemread "))
+                        label=names[m])
             a2.set_title(titles[f], fontsize=7.5); a2.set_ylim(0, 103); a2.tick_params(labelsize=6.5)
             if k:
                 a2.set_yticklabels([])

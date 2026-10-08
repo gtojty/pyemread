@@ -26,6 +26,7 @@ Usage: ``python simulations.py [n_sims_per_level]`` (default 50).
 
 from __future__ import annotations
 
+import random
 import sys
 import time
 
@@ -63,6 +64,7 @@ def main(n_sims: int = 50, seed: int = 2026):
     for factor, levels in FACTORS.items():
         for level in levels:
             np.random.seed(rng_seed)
+            random.seed(rng_seed)          # lorem (passage text) uses the random module
             rng_seed += 1
             scenario = ReadingScenario(**{factor: float(level)})
             for sim in range(n_sims):
