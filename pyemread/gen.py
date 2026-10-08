@@ -1,33 +1,36 @@
 # -*- coding: utf-8 -*-
 """
-Pyemread - gen.py
+Stimulus generation and visualisation for reading experiments.
 
-This module provides functions for generating bitmaps of single/multi-line
-texts for reading experiments, including txt/csv files specifying word-wise
-regions of interest, and visualizing saccades, fixations, and time-stamped
-eye-movement data on bitmaps.
+The main function, :func:`praster`, renders single- or multi-line text as a
+bitmap (PNG) and writes a region file (``<ID>.region.csv``) that gives, for
+every word, its line number and bounding box. These are the word-level areas
+of interest used by the rest of the package. Alphabetic scripts (words
+separated by spaces) and Chinese, Japanese and Korean (see
+:func:`praster` for the input conventions) are supported.
 
-Updates in version 2.0.0:
-- Python 3 compatibility
-- Replaced turtle with matplotlib/moviepy for cross-platform animation
-- Replaced winsound with cross-platform audio using moviepy
-- Improved error handling and type hints
-- Added FFmpeg-based video generation for eye movement animations
+The module also draws fixations and saccades on stimulus bitmaps
+(:func:`draw_sac_fix`) and renders MP4 animations of the fixation sequence,
+optionally synchronised with the audio recorded during oral reading
+(:func:`animate`, which uses FFmpeg).
 
-Usage:
-    from pyemread import gen
-    # Or: import pyemread as pr; pr.gen.function_name()
+Examples
+--------
+>>> from pyemread import gen
+>>> gen.praster(direct="out", fontpath="fonts/LiberationMono-Regular.ttf",
+...             st_pos="TopLeft", lang_type="English",
+...             text=["The quick brown fox", "jumps over the lazy dog."],
+...             ID="demo")                                  # doctest: +SKIP
 """
 
-__author__ = "Tao Gong and David Braze"
-__copyright__ = "Copyright 2017-2024, The Pyemread Project"
-__credits__ = ["Tao Gong", "David Braze", "Jonathan Gordils", "Hosung Nam"]
+__author__ = "Tao Gong"
+__copyright__ = "Copyright 2017-2026, Tao Gong"
+__credits__ = ["David Braze", "Jonathan Gordils", "Hosung Nam"]
 __license__ = "MIT"
-__version__ = "2.1.1"
-__maintainer__ = ["Tao Gong", "David Braze"]
-__email__ = ["gtojty@gmail.com", "davebraze@gmail.com"]
-__status__ = "Production"
+__maintainer__ = "Tao Gong"
+__email__ = "gtojty@gmail.com"
 
+import logging
 import os
 import sys
 import fnmatch
@@ -44,24 +47,15 @@ from PIL import Image, ImageDraw, ImageFont
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, FancyArrow
-from matplotlib.animation import FuncAnimation, FFMpegWriter
 import codecs
 
-# Optional imports for audio support
-try:
-    from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip
-    MOVIEPY_AVAILABLE = True
-except ImportError:
-    MOVIEPY_AVAILABLE = False
-    warnings.warn("moviepy not available. Audio-synchronized animations will be disabled.")
+import shutil
+import subprocess
 
-try:
-    import subprocess
-    FFMPEG_AVAILABLE = subprocess.run(['ffmpeg', '-version'], 
-                                       capture_output=True).returncode == 0
-except (FileNotFoundError, subprocess.SubprocessError):
-    FFMPEG_AVAILABLE = False
-    warnings.warn("FFmpeg not available. Video export will be disabled.")
+_log = logging.getLogger(__name__)
+
+# FFmpeg is needed only for animations; it is looked up when first used.
+FFMPEG_AVAILABLE = shutil.which('ffmpeg') is not None
 
 # Import wave and struct for synthetic audio generation
 import wave
@@ -179,11 +173,11 @@ class FontDict(dict):
             Path to font file or None if not found
         """
         if family not in self:
-            print(f"Family '{family}' does not exist.")
+            _log.info(f"Family '{family}' does not exist.")
             return None
         
         if style not in self[family]:
-            print(f"Family '{family}' does not include style '{style}'")
+            _log.info(f"Family '{family}' does not include style '{style}'")
             return None
         
         return self[family][style]
@@ -237,7 +231,7 @@ def _crt_csv_dic(sit: int, direct: str, subj_id: str, csvfiletype: str) -> Tuple
             csv_dic[subj_id] = filename
             return True, csv_dic
         else:
-            print(f'{subj_id}{csvfiletype}.csv does not exist!')
+            _log.info(f'{subj_id}{csvfiletype}.csv does not exist!')
             return False, csv_dic
     else:
         for root, dirs, files in os.walk(direct):
@@ -247,7 +241,7 @@ def _crt_csv_dic(sit: int, direct: str, subj_id: str, csvfiletype: str) -> Tuple
                     csv_dic[key] = os.path.join(direct, key, name)
         
         if not csv_dic:
-            print('No CSV files in subfolders!')
+            _log.info('No CSV files in subfolders!')
             return False, csv_dic
         return True, csv_dic
 
@@ -273,7 +267,7 @@ def _crt_region_dic(direct: str, regfile_namelist: List[str]) -> Tuple[bool, Dic
                 regfile_dic[str(file)] = os.path.join(direct, str(file))
         
         if not regfile_dic:
-            print(f'No region file exists in {direct}!')
+            _log.info(f'No region file exists in {direct}!')
             return False, regfile_dic
     else:
         # Check specific region files
@@ -282,7 +276,7 @@ def _crt_region_dic(direct: str, regfile_namelist: List[str]) -> Tuple[bool, Dic
             if os.path.isfile(regfile_path):
                 regfile_dic[regfile] = regfile_path
             else:
-                print(f'{regfile} does not exist!')
+                _log.info(f'{regfile} does not exist!')
                 return False, regfile_dic
     
     return True, regfile_dic
@@ -513,6 +507,7 @@ def praster(direct: str, fontpath: str, st_pos: str, lang_type: str,
     """
     if not isinstance(text, (list, tuple)):
         raise ValueError("text argument must be a list of text string(s), not a bare string!")
+    os.makedirs(direct, exist_ok=True)
     
     # Adjust font height if width is specified
     if fwd:
@@ -814,11 +809,11 @@ def gen_bitmap_regfile(direct: str, font_name: str, st_pos: str, lang_type: str,
         real_txtfile = os.path.join(direct, txtfile)
         
         if not os.path.isfile(real_txtfile):
-            print(f'{txtfile} does not exist!')
+            _log.info(f'{txtfile} does not exist!')
             return
         
         with codecs.open(real_txtfile, mode='r', encoding=code_method) as infile:
-            print(f"Read text file: {infile.name}")
+            _log.info(f"Read text file: {infile.name}")
             lines = infile.readlines()
         
         # Remove BOM if present
@@ -835,7 +830,7 @@ def gen_bitmap_regfile(direct: str, font_name: str, st_pos: str, lang_type: str,
         texts = [re.split(r'\r?\n', t) for t in texts]
         
         for i, P in enumerate(texts):
-            print(f"storyID = {i+1:02d} line = {len(P)}")
+            _log.info(f"storyID = {i+1:02d} line = {len(P)}")
             praster(direct, fontpath, st_pos, lang_type,
                    code_method=code_method, text=P, dim=dim, fg=fg, bg=bg,
                    lmargin=lmargin, tmargin=tmargin, linespace=linespace,
@@ -855,7 +850,7 @@ def gen_bitmap_regfile(direct: str, font_name: str, st_pos: str, lang_type: str,
             real_txtfile = os.path.join(direct, txtfile)
             
             with codecs.open(real_txtfile, mode='r', encoding=code_method) as infile:
-                print(f"Read text file: {infile.name}")
+                _log.info(f"Read text file: {infile.name}")
                 lines = infile.readlines()
             
             # Remove BOM if present
@@ -988,7 +983,7 @@ def _image_sac_fix(direct: str, subj_id: str, bitmap_namelist: List[str],
             if matching:
                 bitmap_file = matching[0]
             else:
-                print(f"Warning: No bitmap found for trial_type '{trial_type}'")
+                _log.info(f"Warning: No bitmap found for trial_type '{trial_type}'")
                 return
         
         # Load and convert to RGBA for transparency support
@@ -1300,7 +1295,7 @@ def draw_sac_fix(direct: str, subj_id: str, regfile_namelist: List[str],
         trial_type = trial_data.trial_type.unique()[0]
         reg_df = _get_reg_df(reg_dic, trial_type)
         
-        print(f"Draw Sac and Fix: Subj: {subj_id}, Trial {trial_id}: {trial_type}")
+        _log.info(f"Draw Sac and Fix: Subj: {subj_id}, Trial {trial_id}: {trial_type}")
         
         sac = sac_df[sac_df.trial_id == trial_id].reset_index(drop=True)
         crl_sac = crl_sac_df[crl_sac_df.trial_id == trial_id].reset_index(drop=True)
@@ -1337,7 +1332,7 @@ def draw_sac_fix_b(direct: str, regfile_namelist: List[str],
                 subj_list.add(name.split('.')[0])
     
     if not subj_list:
-        print('No CSV files in the directory!')
+        _log.info('No CSV files in the directory!')
         return
     
     reg_exists, reg_dic = _crt_region_dic(direct, regfile_namelist)
@@ -1383,6 +1378,69 @@ def draw_blinks(direct: str, trial_num: int) -> None:
 
 
 # Animation functions using matplotlib/FFmpeg instead of turtle
+def draw_line_assignment(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
+                         methods: Tuple[str, ...] = ('slice', 'diff'),
+                         out_file: Optional[str] = None, bitmap_file: Optional[str] = None,
+                         title: str = '') -> 'plt.Figure':
+    """
+    Plot the line assignments of several methods side by side for one trial.
+
+    Each panel shows the word boxes of the region file (or the stimulus
+    bitmap), the scanpath, and the fixations coloured by the line to which
+    the method assigned them. This is the recommended way to inspect trials
+    flagged by :func:`pyemread.ext_robust.trial_report`.
+
+    Parameters
+    ----------
+    fix_df : pandas.DataFrame
+        Fixations of one trial and one eye (``x_pos``, ``y_pos``).
+    reg_df : pandas.DataFrame
+        Region table of the stimulus.
+    methods : tuple of str
+        Methods of :func:`pyemread.lines.assign_lines` to compare.
+    out_file : str, optional
+        If given, the figure is saved to this file.
+    bitmap_file : str, optional
+        Stimulus bitmap drawn underneath the fixations.
+    title : str
+        Text prefixed to each panel title.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+    """
+    from . import lines as _lines
+    fix_df = fix_df.reset_index(drop=True)
+    n = len(methods)
+    fig, axes = plt.subplots(1, n, figsize=(7 * n, 6), squeeze=False)
+    cmap = plt.get_cmap('tab10')
+    for ax, m in zip(axes[0], methods):
+        res = _lines.assign_lines(fix_df, reg_df, method=m)
+        if bitmap_file:
+            ax.imshow(Image.open(bitmap_file).convert('L'), cmap='gray', alpha=0.5)
+        for r in reg_df.itertuples():
+            ax.add_patch(plt.Rectangle((r.x1_pos, r.y1_pos), r.x2_pos - r.x1_pos,
+                                       r.y2_pos - r.y1_pos, fill=False, lw=0.4, ec='0.6'))
+        ax.plot(res['x_pos'], res['y_pos'], lw=0.4, color='0.4')
+        ln = res['line_no'].to_numpy(float)
+        ok = np.isfinite(ln)
+        ax.scatter(res['x_pos'][ok], res['y_pos'][ok], s=14,
+                   c=[cmap(int(v - 1) % 10) for v in ln[ok]], zorder=3)
+        ax.scatter(res['x_pos'][~ok], res['y_pos'][~ok], s=14, marker='x', color='k', zorder=3)
+        x0, x1 = reg_df['x1_pos'].min() - 60, reg_df['x2_pos'].max() + 60
+        y0, y1 = reg_df['y1_pos'].min() - 80, reg_df['y2_pos'].max() + 80
+        ax.set_xlim(x0, x1)
+        ax.set_ylim(y1, y0)
+        ax.set_aspect('equal')
+        ax.set_title(f'{title}{m}'.strip())
+        ax.set_xlabel('x (px)')
+        ax.set_ylabel('y (px)')
+    fig.tight_layout()
+    if out_file:
+        fig.savefig(out_file, dpi=150)
+    return fig
+
+
 def _get_audio_duration(audio_file: str) -> Optional[float]:
     """
     Get the duration of an audio file in seconds using ffprobe.
@@ -1456,19 +1514,19 @@ def create_animation_video(direct: str, subj_id: str, bitmap_file: str,
     
     # Check for valid fixation data
     if len(fix_df) == 0:
-        print("No fixation data available")
+        _log.info("No fixation data available")
         return
     
     # Filter by eye if specified
     if eye.upper() in ['L', 'R']:
         eye_label = 'Left' if eye.upper() == 'L' else 'Right'
         fix_df = fix_df[fix_df.eye == eye.upper()].reset_index(drop=True)
-        print(f"Filtering for {eye_label} eye: {len(fix_df)} fixations")
+        _log.info(f"Filtering for {eye_label} eye: {len(fix_df)} fixations")
         if len(fix_df) == 0:
-            print(f"No {eye_label} eye fixation data available")
+            _log.info(f"No {eye_label} eye fixation data available")
             return
     elif eye.lower() != 'both':
-        print(f"Warning: Invalid eye parameter '{eye}', using 'both'")
+        _log.info(f"Warning: Invalid eye parameter '{eye}', using 'both'")
     
     # Determine reference time (when recording/reading started)
     if 'recstart' in fix_df.columns and not pd.isna(fix_df.loc[fix_df.index[0], 'recstart']):
@@ -1486,13 +1544,13 @@ def create_animation_video(direct: str, subj_id: str, bitmap_file: str,
         audio_duration = _get_audio_duration(sound_file)
         if audio_duration:
             duration_sec = audio_duration
-            print(f"Using audio duration: {duration_sec:.2f} seconds")
+            _log.info(f"Using audio duration: {duration_sec:.2f} seconds")
         else:
             duration_sec = (fix_df['rel_end'].max()) / 1000.0
-            print(f"Could not get audio duration, using fixation duration: {duration_sec:.2f} seconds")
+            _log.info(f"Could not get audio duration, using fixation duration: {duration_sec:.2f} seconds")
     else:
         duration_sec = (fix_df['rel_end'].max()) / 1000.0
-        print(f"No audio file, using fixation duration: {duration_sec:.2f} seconds")
+        _log.info(f"No audio file, using fixation duration: {duration_sec:.2f} seconds")
     
     # Calculate radius scaling
     max_dur = fix_df.duration.max()
@@ -1500,7 +1558,7 @@ def create_animation_video(direct: str, subj_id: str, bitmap_file: str,
     
     # Calculate number of frames
     num_frames = int(duration_sec * fps)
-    print(f"Creating animation: {num_frames} frames at {fps} fps ({duration_sec:.2f} seconds)")
+    _log.info(f"Creating animation: {num_frames} frames at {fps} fps ({duration_sec:.2f} seconds)")
     
     # Create temporary directory for frames
     temp_dir = tempfile.mkdtemp()
@@ -1513,10 +1571,10 @@ def create_animation_video(direct: str, subj_id: str, bitmap_file: str,
     fade_states = {i: 0 for i in range(len(fix_df))}
     
     # Generate frames
-    print(f"Rendering {num_frames} frames...")
+    _log.info(f"Rendering {num_frames} frames...")
     for frame_num in range(num_frames):
         if frame_num % 100 == 0:
-            print(f"  Frame {frame_num}/{num_frames}")
+            _log.info(f"  Frame {frame_num}/{num_frames}")
         
         # Current time in milliseconds
         current_time_ms = frame_num * (1000 / fps)
@@ -1553,15 +1611,16 @@ def create_animation_video(direct: str, subj_id: str, bitmap_file: str,
         frame_path = os.path.join(temp_dir, f'frame_{frame_num:06d}.png')
         frame_rgb.save(frame_path, 'PNG')
     
-    print("Frames rendered.")
+    _log.info("Frames rendered.")
     
     # Determine output path
     if not output_file.endswith('.mp4'):
         output_file = output_file + '.mp4'
-    video_path = os.path.join(direct, output_file)
+    out_dir = os.path.join(direct, subj_id) if os.path.isdir(os.path.join(direct, subj_id)) else direct
+    video_path = os.path.join(out_dir, output_file)
     
     # Use ffmpeg to create video with audio
-    print(f"Encoding video with ffmpeg...")
+    _log.info(f"Encoding video with ffmpeg...")
     if sound_file and os.path.exists(sound_file):
         cmd = [
             'ffmpeg', '-y',
@@ -1591,96 +1650,64 @@ def create_animation_video(direct: str, subj_id: str, bitmap_file: str,
     shutil.rmtree(temp_dir)
     
     if result.returncode == 0:
-        print(f"Animation saved to: {video_path}")
+        _log.info(f"Animation saved to: {video_path}")
     else:
-        print(f"FFmpeg error: {result.stderr}")
+        _log.info(f"FFmpeg error: {result.stderr}")
 
 
 def animate(direct: str, subj_id: str, trial_id: int, output_format: str = 'mp4',
-            eye: str = 'both') -> None:
+            eye: str = 'both', sound_file: Optional[str] = None,
+            bitmap_file: Optional[str] = None) -> Optional[str]:
     """
-    Create animation of a trial as a video file.
-    
-    This is a modernized replacement for the turtle-based animation that
-    generates a portable video file instead of an interactive display.
-    
-    Args:
-        direct: Directory of bitmaps, sound files, and fixation CSV files
-        subj_id: Subject ID
-        trial_id: Trial ID
-        output_format: Output format ('mp4' recommended)
-        eye: Which eye to display - 'L' for left only, 'R' for right only,
-             'both' for both eyes (default 'both')
+    Render an MP4 animation of one trial's fixations, with audio if available.
+
+    The fixations are read from ``<direct>/<subj_id>/<subj_id>_Fix.csv``. The
+    stimulus bitmap is ``<direct>/<trial_type>.png`` and the audio recorded
+    during the trial, if any, is ``<direct>/<subj_id>/<subj_id>-<trial_id>.wav``
+    (the naming used by the example data). Both can be given explicitly.
+
+    Parameters
+    ----------
+    direct : str
+        Data directory.
+    subj_id : str
+        Participant identifier.
+    trial_id : int
+        Trial number as in the fixation table (1-based).
+    output_format : str
+        Container of the output file (default 'mp4').
+    eye : {'both', 'L', 'R'}
+        Eye(s) to draw (default 'both').
+    sound_file, bitmap_file : str, optional
+        Override the default audio and bitmap locations.
+
+    Returns
+    -------
+    str or None
+        Path of the written video, or None if the trial has no fixations.
     """
-    # Find CSV file
-    csv_list = []
     subj_dir = os.path.join(direct, subj_id)
-    
-    if not os.path.isdir(subj_dir):
-        print(f'Subject directory not found: {subj_dir}')
-        return
-    
-    for file in os.listdir(subj_dir):
-        if fnmatch.fnmatch(file, '*_Fix*.csv'):
-            csv_list.append(file)
-    
-    if not csv_list:
-        print('No CSV files in the directory!')
-        return
-    
-    csv_file = None
-    for f in csv_list:
-        if f.split('_Fix')[0] == subj_id:
-            csv_file = f
-            break
-    
-    if csv_file is None:
-        print(f'Data of {subj_id} is missing!')
-        return
-    
-    # Find bitmap
-    bitmap_list = [f for f in os.listdir(direct) if fnmatch.fnmatch(f, '*.png')]
-    
-    if not bitmap_list:
-        print('PNG bitmap is missing!')
-        return
-    
-    if trial_id < 0 or (len(bitmap_list) > 1 and trial_id >= len(bitmap_list)):
-        print('Invalid trial ID!')
-        return
-    
-    # Find sound file (optional)
-    sound_list = [f for f in os.listdir(subj_dir) if fnmatch.fnmatch(f, '*.wav')]
-    sound_file = None
-    
-    for sf in sound_list:
-        parts = sf.split('-')
-        if len(parts) >= 2 and parts[0] == subj_id:
-            trial_num = parts[1].split('.')[0]
-            if trial_num == str(trial_id + 1):
-                sound_file = os.path.join(subj_dir, sf)
-                break
-    
-    # Load fixation data
-    fix_df = pd.read_csv(os.path.join(subj_dir, csv_file), sep=',')
+    fix_path = os.path.join(subj_dir, f'{subj_id}_Fix.csv')
+    if not os.path.isfile(fix_path):
+        raise FileNotFoundError(f"{fix_path} not found.")
+    fix_df = pd.read_csv(fix_path, sep=',')
     fix_trial = fix_df[fix_df.trial_id == trial_id].reset_index(drop=True)
-    
-    # Determine bitmap file
-    if len(bitmap_list) == 1:
-        bitmap_file = os.path.join(direct, bitmap_list[0])
-    else:
-        bitmap_file = os.path.join(direct, bitmap_list[trial_id])
-    
-    # Generate output filename (include eye label if not 'both')
-    if eye.upper() in ['L', 'R']:
-        eye_label = 'L' if eye.upper() == 'L' else 'R'
-        output_file = f'{subj_id}_trial{trial_id}_animation_{eye_label}.{output_format}'
-    else:
-        output_file = f'{subj_id}_trial{trial_id}_animation.{output_format}'
-    
-    # Create animation
+    if len(fix_trial) == 0:
+        _log.warning(f'No fixations for trial {trial_id} of {subj_id}.')
+        return None
+    trial_type = str(fix_trial.trial_type.iloc[0])
+    if bitmap_file is None:
+        bitmap_file = os.path.join(direct, f'{trial_type}.png')
+    if not os.path.isfile(bitmap_file):
+        raise FileNotFoundError(f"Stimulus bitmap not found: {bitmap_file}")
+    if sound_file is None:
+        cand = os.path.join(subj_dir, f'{subj_id}-{trial_id}.wav')
+        sound_file = cand if os.path.isfile(cand) else None
+    suffix = f'_{eye.upper()}' if eye.upper() in ('L', 'R') else ''
+    output_file = f'{subj_id}_trial{trial_id}_animation{suffix}.{output_format}'
     create_animation_video(direct, subj_id, bitmap_file, sound_file,
-                          fix_trial, trial_id, output_file, eye=eye)
+                           fix_trial, trial_id, output_file, eye=eye)
+    return os.path.join(subj_dir, output_file)
 
 
 def animate_by_eye(direct: str, subj_id: str, trial_id: int, 
@@ -1698,14 +1725,14 @@ def animate_by_eye(direct: str, subj_id: str, trial_id: int,
         trial_id: Trial ID
         output_format: Output format ('mp4' recommended)
     """
-    print("="*70)
-    print(f"Creating Left Eye Animation")
-    print("="*70)
+    _log.info("="*70)
+    _log.info(f"Creating Left Eye Animation")
+    _log.info("="*70)
     animate(direct, subj_id, trial_id, output_format, eye='L')
     
-    print("\n" + "="*70)
-    print(f"Creating Right Eye Animation")
-    print("="*70)
+    _log.info("\n" + "="*70)
+    _log.info(f"Creating Right Eye Animation")
+    _log.info("="*70)
     animate(direct, subj_id, trial_id, output_format, eye='R')
 
 
@@ -1724,13 +1751,13 @@ def animate_timestamp(direct: str, subj_id: str, trial_id: int,
     subj_dir = os.path.join(direct, subj_id)
     
     if not os.path.isdir(subj_dir):
-        print(f'Subject directory not found: {subj_dir}')
+        _log.info(f'Subject directory not found: {subj_dir}')
         return
     
     csv_list = [f for f in os.listdir(subj_dir) if fnmatch.fnmatch(f, '*_Stamp.csv')]
     
     if not csv_list:
-        print('No Stamp CSV files in the directory!')
+        _log.info('No Stamp CSV files in the directory!')
         return
     
     csv_file = None
@@ -1740,31 +1767,15 @@ def animate_timestamp(direct: str, subj_id: str, trial_id: int,
             break
     
     if csv_file is None:
-        print(f'Stamp data of {subj_id} is missing!')
+        _log.info(f'Stamp data of {subj_id} is missing!')
         return
     
-    # Find bitmap
-    bitmap_list = [f for f in os.listdir(direct) if fnmatch.fnmatch(f, '*.png')]
-    
-    if not bitmap_list:
-        print('PNG bitmap is missing!')
-        return
-    
-    if trial_id < 0 or (len(bitmap_list) > 1 and trial_id >= len(bitmap_list)):
-        print('Invalid trial ID!')
-        return
-    
-    # Find sound file
-    sound_list = [f for f in os.listdir(subj_dir) if fnmatch.fnmatch(f, '*.wav')]
+    # Find sound file (optional)
     sound_file = None
     
-    for sf in sound_list:
-        parts = sf.split('-')
-        if len(parts) >= 2 and parts[0] == subj_id:
-            trial_num = parts[1].split('.')[0]
-            if trial_num == str(trial_id + 1):
-                sound_file = os.path.join(subj_dir, sf)
-                break
+    cand = os.path.join(subj_dir, f'{subj_id}-{trial_id}.wav')
+    if os.path.isfile(cand):
+        sound_file = cand
     
     # Load timestamp data
     stamp_df = pd.read_csv(os.path.join(subj_dir, csv_file), sep=',')
@@ -1776,7 +1787,7 @@ def animate_timestamp(direct: str, subj_id: str, trial_id: int,
     stamp_fix = stamp_trial[valid_mask].copy()
     
     if len(stamp_fix) == 0:
-        print('No valid fixation data in timestamp file')
+        _log.info('No valid fixation data in timestamp file')
         return
     
     # Rename columns to match fixation format
@@ -1796,11 +1807,10 @@ def animate_timestamp(direct: str, subj_id: str, trial_id: int,
     stamp_fix['end_time'] = stamp_fix['start_time'] + stamp_fix['duration']
     stamp_fix['valid'] = 'yes'
     
-    # Determine bitmap file
-    if len(bitmap_list) == 1:
-        bitmap_file = os.path.join(direct, bitmap_list[0])
-    else:
-        bitmap_file = os.path.join(direct, bitmap_list[trial_id])
+    # Stimulus bitmap named after the trial type
+    bitmap_file = os.path.join(direct, f'{stamp_trial.trial_type.iloc[0]}.png')
+    if not os.path.isfile(bitmap_file):
+        raise FileNotFoundError(f"Stimulus bitmap not found: {bitmap_file}")
     
     output_file = f'{subj_id}_trial{trial_id}_timestamp_animation.{output_format}'
     
@@ -1824,7 +1834,7 @@ def change_png2gif(direct: str) -> None:
     png_list = [f for f in os.listdir(direct) if fnmatch.fnmatch(f, '*.png')]
     
     if not png_list:
-        print('PNG bitmap is missing!')
+        _log.info('PNG bitmap is missing!')
         return
     
     for png_file in png_list:
@@ -1878,7 +1888,7 @@ def animate_batch(direct: str, subj_ids: Optional[List[str]] = None,
         fix_file = os.path.join(direct, subj_id, f"{subj_id}_Fix.csv")
         
         if not os.path.exists(fix_file):
-            print(f"Fix file not found for {subj_id}")
+            _log.info(f"Fix file not found for {subj_id}")
             continue
         
         try:
@@ -1893,9 +1903,9 @@ def animate_batch(direct: str, subj_ids: Optional[List[str]] = None,
                     if os.path.exists(output_file):
                         results[subj_id].append(output_file)
                 except Exception as e:
-                    print(f"Error animating {subj_id} trial {trial_id}: {e}")
+                    _log.info(f"Error animating {subj_id} trial {trial_id}: {e}")
         except Exception as e:
-            print(f"Error processing {subj_id}: {e}")
+            _log.info(f"Error processing {subj_id}: {e}")
     
     return results
 

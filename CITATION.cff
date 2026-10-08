@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use pyemread, please cite it as below."
+title: "pyemread"
+version: 2.2.0
+authors:
+  - family-names: Gong
+    given-names: Tao
+    orcid: "https://orcid.org/0000-0002-0587-7544"
+license: MIT
+repository-code: "https://github.com/gtojty/pyemread"
+doi: 10.5281/zenodo.19622178
