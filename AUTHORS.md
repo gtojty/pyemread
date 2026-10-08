@@ -10,8 +10,10 @@ in-house C/C++ programs for eye-movement analysis from which pyemread was
 originally derived, including the definitions of the word-level reading
 measures. He did not write code for this package.
 
-Jonathan Gordils and Hosung Nam are credited in the module metadata of earlier
-versions for their contributions to that earlier work.
+**Jonathan Gordils** assisted with the collection of the example eye-tracking
+data, and **Hosung Nam**, a visiting scholar at Haskins Laboratories, commented
+on the calculation of the eye-movement measures. Both were credited in the module
+metadata of earlier versions; neither wrote code for this package.
 
 The `slice` line-assignment method in `pyemread/lines.py` is adapted from
 the Python implementation by Jon W. Carr and colleagues
