@@ -13,20 +13,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9", "3.11", "3.13"]
-        pandas: ["pandas>=1.5,<2", "pandas>=2,<3", "pandas>=3"]
-        exclude:
-          - python: "3.9"
-            pandas: "pandas>=3"
-          - python: "3.13"
-            pandas: "pandas>=1.5,<2"
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        deps: ["latest"]
         include:
-          - os: windows-latest
-            python: "3.12"
-            pandas: "pandas>=3"
-          - os: macos-latest
-            python: "3.12"
-            pandas: "pandas>=3"
+          # oldest supported pandas (needs NumPy 1.x)
+          - {os: ubuntu-latest, python: "3.9", deps: "pandas==1.5.3 numpy==1.26.4"}
+          - {os: ubuntu-latest, python: "3.11", deps: "pandas==1.5.3 numpy==1.26.4"}
+          # pandas 2.x
+          - {os: ubuntu-latest, python: "3.11", deps: "pandas==2.2.3"}
+          # other operating systems
+          - {os: windows-latest, python: "3.12", deps: "latest"}
+          - {os: macos-latest, python: "3.12", deps: "latest"}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,9 +33,14 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Install pyemread in a clean environment
+        shell: bash
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "${{ matrix.pandas }}" ".[test]"
+          if [ "${{ matrix.deps }}" = "latest" ]; then
+            python -m pip install ".[test]"
+          else
+            python -m pip install ${{ matrix.deps }} ".[test]"
+          fi
           python -m pip list
       - name: Unit and end-to-end tests
         run: python -m pytest -v

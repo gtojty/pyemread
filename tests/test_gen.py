@@ -47,3 +47,13 @@ def test_draw_and_animate(eyelink_dir):
     shutil.copy(EXAMPLES / SUBJECT / f"{SUBJECT}-1.wav", eyelink_dir / SUBJECT)
     out = gen.animate(d, SUBJECT, 1, eye="R")
     assert out is not None and Path(out).exists() and Path(out).stat().st_size > 10_000
+
+
+def test_praster_other_alphabetic_languages(tmp_path):
+    for lang, text in (("Polish", ["Zażółć gęślą jaźń, to jest zdanie.", "Druga linia tekstu."]),
+                       ("Portuguese", ["A ação começou cedo naquela manhã.", "Segunda linha."]),
+                       ("Greek", ["Η γρήγορη καφέ αλεπού πηδά.", "Δεύτερη γραμμή."])):
+        gen.praster(direct=str(tmp_path), fontpath=MONO, st_pos="TopLeft", lang_type=lang,
+                    text=text, ID=lang)
+        reg = pd.read_csv(tmp_path / f"{lang}.region.csv")
+        assert len(reg) == sum(len(t.split()) for t in text) and reg["line_no"].max() == 2
