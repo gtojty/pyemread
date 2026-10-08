@@ -1,35 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Pyemread - ext.py
+EyeLink (SR Research) ASC parsing and fixation-to-line classification.
 
-This module provides functions for extracting saccades and fixations
-detected by eye trackers (SR Research EyeLink devices) during reading
-and classifying them into different text lines.
+This module reads the ASC files produced by SR Research's ``edf2asc``
+utility, extracts per-trial fixations, saccades and samples, assigns
+fixations to text lines and words, and writes the results as CSV tables
+that :mod:`pyemread.cal` turns into word-level reading measures.
 
-Updates in version 2.1.1:
-- trial_id is now 1-indexed (1, 2, 3...) to match story names (story01, story02, story03...)
-- This aligns trial_id with human-readable naming conventions
+The recommended entry point is :func:`process_subject`, which reads one
+participant's ASC file, classifies every trial and writes the tables in a
+single call. The lower-level functions are retained for compatibility
+with earlier versions; their camelCase names (e.g. ``cal_crlSacFix``) are
+kept as aliases of the snake_case names.
 
-Updates in version 2.0.0:
-- Python 3 compatibility
-- Improved error handling and type hints
-- Better file encoding handling
-- Removed deprecated Python 2 constructs
-
-Usage:
-    from pyemread import ext
-    # Or: import pyemread as pr; pr.ext.function_name()
+Examples
+--------
+>>> from pyemread import ext, cal
+>>> ext.process_subject("data", "1950138",
+...                     ["story01.region.csv", "story02.region.csv",
+...                      "story03.region.csv"])          # doctest: +SKIP
+>>> cal.cal_write_em("data", "1950138",
+...                  ["story01.region.csv", "story02.region.csv",
+...                   "story03.region.csv"])           # doctest: +SKIP
 """
 
-__author__ = "Tao Gong and David Braze"
-__copyright__ = "Copyright 2017-2024, The Pyemread Project"
-__credits__ = ["Tao Gong", "David Braze", "Jonathan Gordils", "Hosung Nam"]
+__author__ = "Tao Gong"
+__copyright__ = "Copyright 2017-2026, Tao Gong"
+__credits__ = ["David Braze", "Jonathan Gordils", "Hosung Nam"]
 __license__ = "MIT"
-__version__ = "2.1.1"
-__maintainer__ = ["Tao Gong", "David Braze"]
-__email__ = ["gtojty@gmail.com", "davebraze@gmail.com"]
-__status__ = "Production"
+__maintainer__ = "Tao Gong"
+__email__ = "gtojty@gmail.com"
 
+import logging
 import os
 import sys
 import fnmatch
@@ -39,6 +41,16 @@ from pathlib import Path
 
 import pandas as pd
 import numpy as np
+
+from . import lines as _lines
+
+_log = logging.getLogger(__name__)
+
+TRIAL_TYPE_VAR = 'picture_name'
+"""Name of the EyeLink trial variable (``!V TRIAL_VAR <name> <value>``) whose
+value, without file extension, identifies the stimulus of a trial and hence
+its region file (``<value>.region.csv``). Change it if your experiment uses
+another variable, e.g. ``ext.TRIAL_TYPE_VAR = "stimulus"``."""
 
 
 # -----------------------------------------------------------------------------
@@ -206,7 +218,7 @@ def _get_tdur(triallines: List[str]) -> Tuple[Any, int, int, int, int, int]:
     recend = 0
     
     for line in triallines:
-        if re.search('!V TRIAL_VAR picture_name', line):
+        if re.search(rf'!V TRIAL_VAR {TRIAL_TYPE_VAR}\b', line):
             trial_type = line.split()[-1].split('.')[0]
         if re.search('^START', line):
             trialstart = int(line.split()[1])
@@ -611,7 +623,7 @@ def _get_crossline_fix(crossline_info: List[Dict], startline: int, endline: int,
     question = False
     if lines and (lines[0][0] == -1 or lines[-1][0] == -1 or 
                   lines[-1][2] != crossline_info[-1]['n']):
-        print('Warning! crlFix start/end need check!')
+        _log.warning('Warning! crlFix start/end need check!')
         question = True
     
     return lines, curline, question
@@ -784,6 +796,48 @@ def _get_fix_line(reg_df: pd.DataFrame, crl_sac: pd.DataFrame, fix_df: pd.DataFr
     return lines, question
 
 
+CRL_FIX_COLUMNS = ['subj', 'trial_id', 'eye', 'startline', 'endline', 'FixlineIndex',
+                   'start_time', 'end_time', 'duration', 'x_pos', 'y_pos', 'pup_size',
+                   'valid']
+"""Columns of the cross-line fixation table (``<subj>_crlFix.csv``)."""
+
+CRL_SAC_COLUMNS = ['subj', 'trial_id', 'eye', 'startline', 'endline', 'SaclineIndex',
+                   'start_time', 'end_time', 'duration', 'x1_pos', 'y1_pos', 'x2_pos',
+                   'y2_pos', 'ampl', 'pk']
+"""Columns of the cross-line saccade table (``<subj>_crlSac.csv``)."""
+
+
+def _crl_fix_table(fix_df: pd.DataFrame, startlines, endlines, indices) -> pd.DataFrame:
+    """Table of the fixations at which the reader's line changes."""
+    rows = []
+    for st, en, ind in zip(startlines, endlines, indices):
+        cur_fix = fix_df.loc[ind]
+        rows.append({'subj': cur_fix['subj'], 'trial_id': cur_fix['trial_id'],
+                     'eye': cur_fix['eye'], 'startline': st, 'endline': en,
+                     'FixlineIndex': ind,
+                     **{c: cur_fix.get(c, np.nan) for c in ['start_time', 'end_time',
+                                                           'duration', 'x_pos', 'y_pos',
+                                                           'pup_size', 'valid']}})
+    return pd.DataFrame(rows, columns=CRL_FIX_COLUMNS)
+
+
+def _crl_fix_from_lines(fix_df: pd.DataFrame) -> pd.DataFrame:
+    """Derive the cross-line fixation table from assigned ``line_no`` values.
+
+    A row is created for every fixation whose line differs from the line
+    of the preceding assigned fixation (forward return sweeps have
+    ``endline > startline``; regressions to earlier lines have
+    ``endline < startline``).
+    """
+    ln = fix_df['line_no'].to_numpy(float)
+    idx = [i for i in range(len(ln)) if np.isfinite(ln[i])]
+    st, en, at = [], [], []
+    for a, b in zip(idx[:-1], idx[1:]):
+        if ln[b] != ln[a]:
+            st.append(ln[a]); en.append(ln[b]); at.append(b)
+    return _crl_fix_table(fix_df, st, en, at)
+
+
 def _get_crl_fix(reg_df: pd.DataFrame, crl_sac: pd.DataFrame, fix_df: pd.DataFrame,
                  classify_method: str, diff_ratio: float, frontrange_ratio: float,
                  y_range: int) -> Tuple[pd.DataFrame, bool]:
@@ -805,26 +859,8 @@ def _get_crl_fix(reg_df: pd.DataFrame, crl_sac: pd.DataFrame, fix_df: pd.DataFra
     lines, question = _get_fix_line(reg_df, crl_sac, fix_df, classify_method, 
                                      diff_ratio, frontrange_ratio, y_range)
     
-    crl_fix = pd.DataFrame(np.zeros((len(lines), 13)),
-                           columns=['subj', 'trial_id', 'eye', 'startline', 'endline',
-                                   'FixlineIndex', 'start_time', 'end_time', 'duration',
-                                   'x_pos', 'y_pos', 'pup_size', 'valid'])
-    crl_fix['subj'] = fix_df['subj'].iloc[0]
-    crl_fix['trial_id'] = fix_df['trial_id'].iloc[0]
-    
-    for cur, item in enumerate(lines):
-        cur_fix = fix_df.loc[item[3]]
-        crl_fix.loc[cur, 'eye'] = cur_fix['eye']
-        crl_fix.loc[cur, 'startline'] = item[1]
-        crl_fix.loc[cur, 'endline'] = item[2]
-        crl_fix.loc[cur, 'FixlineIndex'] = item[3]
-        crl_fix.loc[cur, 'start_time'] = cur_fix['start_time']
-        crl_fix.loc[cur, 'end_time'] = cur_fix['end_time']
-        crl_fix.loc[cur, 'duration'] = cur_fix['duration']
-        crl_fix.loc[cur, 'x_pos'] = cur_fix['x_pos']
-        crl_fix.loc[cur, 'y_pos'] = cur_fix['y_pos']
-        crl_fix.loc[cur, 'pup_size'] = cur_fix['pup_size']
-        crl_fix.loc[cur, 'valid'] = cur_fix['valid']
+    crl_fix = _crl_fix_table(fix_df, [item[1] for item in lines],
+                             [item[2] for item in lines], [item[3] for item in lines])
     
     return crl_fix, question
 
@@ -860,7 +896,7 @@ def _rec_timestamp(exp_type: str, trial_id: int, blinklines: List, stamplines: L
     blink_number = len(blinklines)
     stamp_number = len(stamplines)
     
-    stamp_df = pd.DataFrame(np.zeros((stamp_number, 26)),
+    stamp_df = pd.DataFrame(np.zeros((stamp_number, 26)), dtype=object,
                             columns=['subj', 'trial_id', 'trial_type', 'sampfreq', 'script',
                                     'sessdate', 'srcfile', 'trialstart', 'trialend', 'tdur',
                                     'recstart', 'recend', 'blinks', 'eye', 'time', 'x_pos1',
@@ -907,13 +943,34 @@ def _rec_timestamp(exp_type: str, trial_id: int, blinklines: List, stamplines: L
         pup2 = [line[6] for line in stamplines]
         stamp_df['pup_size2'] = pd.Series(pup2).replace('.', np.nan).astype(float)
     
-    stamp_df['line_no'] = np.nan
+    stamp_df['line_no'] = pd.Series([None] * stamp_number, dtype=object)
     stamp_df['gaze_region_no'] = np.nan
-    stamp_df['label'] = np.nan
+    stamp_df['label'] = pd.Series([None] * stamp_number, dtype=object)
     stamp_df['error_free'] = error_free
-    stamp_df['Fix_Sac'] = np.nan
+    stamp_df['Fix_Sac'] = pd.Series([None] * stamp_number, dtype=object)
     
     return stamp_df
+
+
+FIX_COLUMNS = ['subj', 'trial_id', 'trial_type', 'sampfreq', 'script', 'sessdate',
+               'srcfile', 'trialstart', 'trialend', 'tdur', 'recstart', 'recend',
+               'blinks', 'eye', 'start_time', 'end_time', 'duration', 'x_pos',
+               'y_pos', 'pup_size', 'valid', 'line_no', 'region_no']
+"""Columns of the fixation table written to ``<subj>_Fix.csv``."""
+
+SAC_COLUMNS = ['subj', 'trial_id', 'trial_type', 'sampfreq', 'script', 'sessdate',
+               'srcfile', 'trialstart', 'trialend', 'tdur', 'recstart', 'recend',
+               'blinks', 'eye', 'start_time', 'end_time', 'duration', 'x1_pos',
+               'y1_pos', 'x2_pos', 'y2_pos', 'ampl', 'pk', 'line_no']
+"""Columns of the saccade table written to ``<subj>_Sac.csv``."""
+
+
+def _num(v: str) -> float:
+    """Convert an ASC field to float; '.' (missing) becomes NaN."""
+    try:
+        return float(v)
+    except ValueError:
+        return np.nan
 
 
 def _rec_fix(exp_type: str, trial_id: int, blinklines: List, fixlines: List,
@@ -922,180 +979,49 @@ def _rec_fix(exp_type: str, trial_id: int, blinklines: List, fixlines: List,
              recstart: int, recend: int, rec_last_fix: bool, lump_fix: bool,
              ln: int, zn: int, mn: int) -> pd.DataFrame:
     """
-    Get fixation data from trials.
-    
-    Args:
-        exp_type: Type of experiment
-        trial_id: Trial ID
-        blinklines: Blink data lines
-        fixlines: Fixation data lines
-        sampfreq: Sampling frequency
-        eyerec: Eye recorded
-        script: Script file
-        sessdate: Session date
-        srcfile: Source file
-        trial_type: Trial type
-        trialstart: Trial start time
-        trialend: Trial end time
-        tdur: Trial duration
-        recstart: Recording start time
-        recend: Recording end time
-        rec_last_fix: Whether to include last fixation
-        lump_fix: Whether to lump short fixations
-        ln: Maximum duration for lumping
-        zn: Maximum distance for lumping
-        mn: Minimum legal fixation duration
-        
-    Returns:
-        Fixation DataFrame
+    Build the fixation table of one trial from its EFIX lines.
+
+    Fixations are grouped by eye (left eye first). If ``rec_last_fix`` is
+    False, the trial's final fixation is marked invalid, because it is
+    usually cut short by the end of the trial. If ``lump_fix`` is True,
+    fixations no longer than ``ln`` ms are merged with a neighbour within
+    ``zn`` pixels, and fixations still shorter than ``mn`` ms are marked
+    invalid.
     """
     blink_number = len(blinklines)
-    fix_number = len(fixlines)
     addtime = 1 / float(sampfreq) * 1000
-    
-    columns = ['subj', 'trial_id', 'trial_type', 'sampfreq', 'script', 'sessdate',
-               'srcfile', 'trialstart', 'trialend', 'tdur', 'recstart', 'recend',
-               'blinks', 'eye', 'start_time', 'end_time', 'duration', 'x_pos',
-               'y_pos', 'pup_size', 'valid', 'line_no', 'region_no']
-    
-    if eyerec in ['L', 'R']:
-        fix_df = pd.DataFrame(np.zeros((fix_number, 23)), columns=columns)
-        fix_df['subj'] = srcfile.split('.')[0]
-        fix_df['trial_id'] = int(trial_id)
-        fix_df['trial_type'] = trial_type
-        fix_df['sampfreq'] = int(sampfreq)
-        fix_df['script'] = script
-        fix_df['sessdate'] = sessdate
-        fix_df['srcfile'] = srcfile
-        fix_df['trialstart'] = trialstart
-        fix_df['trialend'] = trialend
-        fix_df['tdur'] = tdur
-        fix_df['recstart'] = recstart
-        fix_df['recend'] = recend
-        fix_df['blinks'] = int(blink_number)
-        fix_df['eye'] = [line[1] for line in fixlines]
-        fix_df['start_time'] = [float(line[2]) for line in fixlines]
-        fix_df['end_time'] = [float(line[3]) for line in fixlines]
-        fix_df['duration'] = [float(line[4]) for line in fixlines]
-        fix_df['x_pos'] = [float(line[5]) for line in fixlines]
-        fix_df['y_pos'] = [float(line[6]) for line in fixlines]
-        fix_df['pup_size'] = [float(line[7]) for line in fixlines]
-        fix_df['valid'] = 'yes'
-        
-        if not rec_last_fix:
-            fix_df.loc[fix_number - 1, 'valid'] = 'no'
-        
+    common = {'subj': srcfile.split('.')[0], 'trial_id': int(trial_id),
+              'trial_type': trial_type, 'sampfreq': int(sampfreq),
+              'script': script, 'sessdate': sessdate, 'srcfile': srcfile,
+              'trialstart': trialstart, 'trialend': trialend, 'tdur': tdur,
+              'recstart': recstart, 'recend': recend, 'blinks': int(blink_number)}
+    last_eye = fixlines[-1][1] if fixlines else None
+    eyes = [eyerec] if eyerec in ('L', 'R') else ['L', 'R']
+    parts = []
+    for eye in eyes:
+        rows = [dict(common, eye=line[1], start_time=_num(line[2]), end_time=_num(line[3]),
+                     duration=_num(line[4]), x_pos=_num(line[5]), y_pos=_num(line[6]),
+                     pup_size=_num(line[7]), valid='yes', line_no=np.nan, region_no=np.nan)
+                for line in fixlines if line[1] == eye]
+        if not rows:
+            if eyerec == 'LR':
+                _log.warning(f'Trial {trial_id}: binocular recording without {eye}-eye fixations.')
+            continue
+        df = pd.DataFrame(rows, columns=FIX_COLUMNS)
+        n = len(df)
+        holds_last = (eye == last_eye)
+        if not rec_last_fix and holds_last:
+            df.loc[n - 1, 'valid'] = 'no'
         if lump_fix:
-            short_index = [ind for ind in range(fix_number) 
-                          if fix_df.loc[ind, 'duration'] <= ln and fix_df.loc[ind, 'valid'] == 'yes']
-            endindex = fix_number - 2 if not rec_last_fix else fix_number - 1
-            fix_df = _lump_fix(fix_df, endindex, short_index, addtime, ln, zn)
-    
-    elif eyerec == 'LR':
-        num_left = sum(1 for line in fixlines if line[1] == 'L')
-        num_right = sum(1 for line in fixlines if line[1] == 'R')
-        
-        if num_left == 0:
-            print('Warning! No left eye Fix under both eyes Fix!')
-        if num_right == 0:
-            print('Warning! No right eye Fix under both eyes Fix!')
-        
-        last_lr = fixlines[-1][1] if fixlines else 'R'
-        
-        # Process left eye
-        if num_left > 0:
-            fix_df1 = pd.DataFrame(np.zeros((num_left, 23)), columns=columns)
-            fix_df1['subj'] = srcfile.split('.')[0]
-            fix_df1['trial_id'] = int(trial_id)
-            fix_df1['trial_type'] = trial_type
-            fix_df1['sampfreq'] = int(sampfreq)
-            fix_df1['script'] = script
-            fix_df1['sessdate'] = sessdate
-            fix_df1['srcfile'] = srcfile
-            fix_df1['trialstart'] = trialstart
-            fix_df1['trialend'] = trialend
-            fix_df1['tdur'] = tdur
-            fix_df1['recstart'] = recstart
-            fix_df1['recend'] = recend
-            fix_df1['blinks'] = int(blink_number)
-            
-            cur = 0
-            for line in fixlines:
-                if line[1] == 'L':
-                    fix_df1.loc[cur, 'eye'] = line[1]
-                    fix_df1.loc[cur, 'start_time'] = float(line[2])
-                    fix_df1.loc[cur, 'end_time'] = float(line[3])
-                    fix_df1.loc[cur, 'duration'] = float(line[4])
-                    fix_df1.loc[cur, 'x_pos'] = float(line[5])
-                    fix_df1.loc[cur, 'y_pos'] = float(line[6])
-                    fix_df1.loc[cur, 'pup_size'] = float(line[7])
-                    cur += 1
-            
-            fix_df1['valid'] = 'yes'
-            if not rec_last_fix and last_lr == 'L':
-                fix_df1.loc[num_left - 1, 'valid'] = 'no'
-            
-            if lump_fix:
-                short_index1 = [ind for ind in range(num_left) 
-                               if fix_df1.loc[ind, 'duration'] <= ln and fix_df1.loc[ind, 'valid'] == 'yes']
-                endindex1 = fix_number - 2 if not rec_last_fix and num_left == fix_number else num_left - 1
-                fix_df1 = _lump_fix(fix_df1, endindex1, short_index1, addtime, ln, zn)
-        
-        # Process right eye
-        if num_right > 0:
-            fix_df2 = pd.DataFrame(np.zeros((num_right, 23)), columns=columns)
-            fix_df2['subj'] = srcfile.split('.')[0]
-            fix_df2['trial_id'] = int(trial_id)
-            fix_df2['trial_type'] = trial_type
-            fix_df2['sampfreq'] = int(sampfreq)
-            fix_df2['script'] = script
-            fix_df2['sessdate'] = sessdate
-            fix_df2['srcfile'] = srcfile
-            fix_df2['trialstart'] = trialstart
-            fix_df2['trialend'] = trialend
-            fix_df2['tdur'] = tdur
-            fix_df2['recstart'] = recstart
-            fix_df2['recend'] = recend
-            fix_df2['blinks'] = int(blink_number)
-            
-            cur = 0
-            for line in fixlines:
-                if line[1] == 'R':
-                    fix_df2.loc[cur, 'eye'] = line[1]
-                    fix_df2.loc[cur, 'start_time'] = float(line[2])
-                    fix_df2.loc[cur, 'end_time'] = float(line[3])
-                    fix_df2.loc[cur, 'duration'] = float(line[4])
-                    fix_df2.loc[cur, 'x_pos'] = float(line[5])
-                    fix_df2.loc[cur, 'y_pos'] = float(line[6])
-                    fix_df2.loc[cur, 'pup_size'] = float(line[7])
-                    cur += 1
-            
-            fix_df2['valid'] = 'yes'
-            if not rec_last_fix and last_lr == 'R':
-                fix_df2.loc[num_right - 1, 'valid'] = 'no'
-            
-            if lump_fix:
-                short_index2 = [ind for ind in range(num_right) 
-                               if fix_df2.loc[ind, 'duration'] <= ln and fix_df2.loc[ind, 'valid'] == 'yes']
-                endindex2 = fix_number - 2 if not rec_last_fix and num_right == fix_number else num_right - 1
-                fix_df2 = _lump_fix(fix_df2, endindex2, short_index2, addtime, ln, zn)
-        
-        # Merge
-        fix_df = pd.DataFrame(columns=columns)
-        if num_left > 0:
-            fix_df = pd.concat([fix_df, fix_df1], ignore_index=True)
-        if num_right > 0:
-            fix_df = pd.concat([fix_df, fix_df2], ignore_index=True)
-    
-    if lump_fix:
-        for ind in range(len(fix_df)):
-            if fix_df.loc[ind, 'duration'] < mn:
-                fix_df.loc[ind, 'valid'] = 'no'
-    
-    fix_df['line_no'] = np.nan
-    fix_df['region_no'] = np.nan
-    
-    return fix_df
+            short_index = [i for i in range(n)
+                           if df.loc[i, 'duration'] <= ln and df.loc[i, 'valid'] == 'yes']
+            endindex = n - 2 if (not rec_last_fix and holds_last) else n - 1
+            df = _lump_fix(df, endindex, short_index, addtime, ln, zn)
+            df.loc[df['duration'] < mn, 'valid'] = 'no'
+        parts.append(df)
+    if not parts:
+        return pd.DataFrame(columns=FIX_COLUMNS)
+    return pd.concat(parts, ignore_index=True)
 
 
 def _merge_sac_lines(startline: int, endline: int, df: pd.DataFrame) -> List[Tuple]:
@@ -1211,7 +1137,7 @@ def _get_crossline_sac(crossline_info: List[Dict], startline: int, endline: int,
     question = False
     if lines and (lines[0][0] == -1 or lines[-1][0] == -1 or 
                   lines[-1][2] != crossline_info[-1]['n']):
-        print('Warning! crlSac start/end need check!')
+        _log.warning('Warning! crlSac start/end need check!')
         question = True
     
     return lines, curline, question
@@ -1345,28 +1271,16 @@ def _get_crl_sac(reg_df: pd.DataFrame, sac_df: pd.DataFrame, diff_ratio: float,
     """
     lines, question = _get_sac_line(reg_df, sac_df, diff_ratio, frontrange_ratio, y_range)
     
-    crl_sac = pd.DataFrame(np.zeros((len(lines), 15)),
-                           columns=['subj', 'trial_id', 'eye', 'startline', 'endline',
-                                   'SaclineIndex', 'start_time', 'end_time', 'duration',
-                                   'x1_pos', 'y1_pos', 'x2_pos', 'y2_pos', 'ampl', 'pk'])
-    crl_sac['subj'] = sac_df['subj'].iloc[0]
-    crl_sac['trial_id'] = sac_df['trial_id'].iloc[0]
-    
-    for cur, item in enumerate(lines):
+    rows = []
+    for item in lines:
         cur_sac = sac_df.loc[item[3]]
-        crl_sac.loc[cur, 'eye'] = cur_sac['eye']
-        crl_sac.loc[cur, 'startline'] = item[1]
-        crl_sac.loc[cur, 'endline'] = item[2]
-        crl_sac.loc[cur, 'SaclineIndex'] = item[3]
-        crl_sac.loc[cur, 'start_time'] = cur_sac['start_time']
-        crl_sac.loc[cur, 'end_time'] = cur_sac['end_time']
-        crl_sac.loc[cur, 'duration'] = cur_sac['duration']
-        crl_sac.loc[cur, 'x1_pos'] = cur_sac['x1_pos']
-        crl_sac.loc[cur, 'y1_pos'] = cur_sac['y1_pos']
-        crl_sac.loc[cur, 'x2_pos'] = cur_sac['x2_pos']
-        crl_sac.loc[cur, 'y2_pos'] = cur_sac['y2_pos']
-        crl_sac.loc[cur, 'ampl'] = cur_sac['ampl']
-        crl_sac.loc[cur, 'pk'] = cur_sac['pk']
+        rows.append({'subj': cur_sac['subj'], 'trial_id': cur_sac['trial_id'],
+                     'eye': cur_sac['eye'], 'startline': item[1], 'endline': item[2],
+                     'SaclineIndex': item[3],
+                     **{c: cur_sac[c] for c in ['start_time', 'end_time', 'duration',
+                                                'x1_pos', 'y1_pos', 'x2_pos', 'y2_pos',
+                                                'ampl', 'pk']}})
+    crl_sac = pd.DataFrame(rows, columns=CRL_SAC_COLUMNS)
     
     return crl_sac, question
 
@@ -1376,106 +1290,33 @@ def _rec_sac(exp_type: str, trial_id: int, blinklines: List, saclines: List,
              trial_type: str, trialstart: int, trialend: int, tdur: int,
              recstart: int, recend: int) -> pd.DataFrame:
     """
-    Record saccade data from trials.
-    
-    Args:
-        exp_type: Type of experiment
-        trial_id: Trial ID
-        blinklines: Blink data lines
-        saclines: Saccade data lines
-        sampfreq: Sampling frequency
-        eyerec: Eye recorded
-        script: Script file
-        sessdate: Session date
-        srcfile: Source file
-        trial_type: Trial type
-        trialstart: Trial start time
-        trialend: Trial end time
-        tdur: Trial duration
-        recstart: Recording start time
-        recend: Recording end time
-        
-    Returns:
-        Saccade DataFrame
+    Build the saccade table of one trial from its ESACC lines.
+
+    Saccades with a missing field (e.g. those interrupted by a blink) are
+    dropped. Saccades are grouped by eye (left eye first).
     """
     blink_number = len(blinklines)
-    
-    # Remove invalid saccades
-    saclines = [line for line in saclines 
-                if all(line[ind] != '.' for ind in range(2, 11))]
-    sac_number = len(saclines)
-    
-    columns = ['subj', 'trial_id', 'trial_type', 'sampfreq', 'script', 'sessdate',
-               'srcfile', 'trialstart', 'trialend', 'tdur', 'recstart', 'recend',
-               'blinks', 'eye', 'start_time', 'end_time', 'duration', 'x1_pos',
-               'y1_pos', 'x2_pos', 'y2_pos', 'ampl', 'pk', 'line_no']
-    
-    sac_df = pd.DataFrame(np.zeros((sac_number, 24)), columns=columns)
-    sac_df['subj'] = srcfile.split('.')[0]
-    sac_df['trial_id'] = int(trial_id)
-    sac_df['trial_type'] = trial_type
-    sac_df['sampfreq'] = int(sampfreq)
-    sac_df['script'] = script
-    sac_df['sessdate'] = sessdate
-    sac_df['srcfile'] = srcfile
-    sac_df['trialstart'] = trialstart
-    sac_df['trialend'] = trialend
-    sac_df['tdur'] = tdur
-    sac_df['recstart'] = recstart
-    sac_df['recend'] = recend
-    sac_df['blinks'] = int(blink_number)
-    
-    if eyerec in ['L', 'R']:
-        sac_df['eye'] = [line[1] for line in saclines]
-        sac_df['start_time'] = [float(line[2]) for line in saclines]
-        sac_df['end_time'] = [float(line[3]) for line in saclines]
-        sac_df['duration'] = [float(line[4]) for line in saclines]
-        sac_df['x1_pos'] = [float(line[5]) for line in saclines]
-        sac_df['y1_pos'] = [float(line[6]) for line in saclines]
-        sac_df['x2_pos'] = [float(line[7]) for line in saclines]
-        sac_df['y2_pos'] = [float(line[8]) for line in saclines]
-        sac_df['ampl'] = [float(line[9]) for line in saclines]
-        sac_df['pk'] = [float(line[10]) for line in saclines]
-    elif eyerec == 'LR':
-        num_left = sum(1 for line in saclines if line[1] == 'L')
-        num_right = sum(1 for line in saclines if line[1] == 'R')
-        
-        if num_left == 0:
-            print('Warning! Both eyes fixations recorded, but no left eye fixation data!')
-        if num_right == 0:
-            print('Warning! Both eyes fixations recorded, but no right eye fixation data!')
-        
-        cur = 0
-        for line in saclines:
-            if line[1] == 'L':
-                sac_df.loc[cur, 'eye'] = line[1]
-                sac_df.loc[cur, 'start_time'] = float(line[2])
-                sac_df.loc[cur, 'end_time'] = float(line[3])
-                sac_df.loc[cur, 'duration'] = float(line[4])
-                sac_df.loc[cur, 'x1_pos'] = float(line[5])
-                sac_df.loc[cur, 'y1_pos'] = float(line[6])
-                sac_df.loc[cur, 'x2_pos'] = float(line[7])
-                sac_df.loc[cur, 'y2_pos'] = float(line[8])
-                sac_df.loc[cur, 'ampl'] = float(line[9])
-                sac_df.loc[cur, 'pk'] = float(line[10])
-                cur += 1
-        for line in saclines:
-            if line[1] == 'R':
-                sac_df.loc[cur, 'eye'] = line[1]
-                sac_df.loc[cur, 'start_time'] = float(line[2])
-                sac_df.loc[cur, 'end_time'] = float(line[3])
-                sac_df.loc[cur, 'duration'] = float(line[4])
-                sac_df.loc[cur, 'x1_pos'] = float(line[5])
-                sac_df.loc[cur, 'y1_pos'] = float(line[6])
-                sac_df.loc[cur, 'x2_pos'] = float(line[7])
-                sac_df.loc[cur, 'y2_pos'] = float(line[8])
-                sac_df.loc[cur, 'ampl'] = float(line[9])
-                sac_df.loc[cur, 'pk'] = float(line[10])
-                cur += 1
-    
-    sac_df['line_no'] = np.nan
-    
-    return sac_df
+    saclines = [line for line in saclines
+                if len(line) >= 11 and all(line[ind] != '.' for ind in range(2, 11))]
+    common = {'subj': srcfile.split('.')[0], 'trial_id': int(trial_id),
+              'trial_type': trial_type, 'sampfreq': int(sampfreq),
+              'script': script, 'sessdate': sessdate, 'srcfile': srcfile,
+              'trialstart': trialstart, 'trialend': trialend, 'tdur': tdur,
+              'recstart': recstart, 'recend': recend, 'blinks': int(blink_number)}
+    eyes = [eyerec] if eyerec in ('L', 'R') else ['L', 'R']
+    rows = []
+    for eye in eyes:
+        sel = [line for line in saclines if line[1] == eye]
+        if not sel and eyerec == 'LR':
+            _log.warning(f'Trial {trial_id}: binocular recording without {eye}-eye saccades.')
+        rows += [dict(common, eye=line[1], start_time=float(line[2]), end_time=float(line[3]),
+                      duration=float(line[4]), x1_pos=float(line[5]), y1_pos=float(line[6]),
+                      x2_pos=float(line[7]), y2_pos=float(line[8]), ampl=float(line[9]),
+                      pk=float(line[10]), line_no=None)
+                 for line in sel]
+    df = pd.DataFrame(rows, columns=SAC_COLUMNS)
+    df['line_no'] = df['line_no'].astype(object)
+    return df
 
 
 def _mod_reg_df(reg_df: pd.DataFrame, add_char_sp: int) -> None:
@@ -1486,8 +1327,8 @@ def _mod_reg_df(reg_df: pd.DataFrame, add_char_sp: int) -> None:
         reg_df: Region DataFrame (modified in place)
         add_char_sp: Number of single character spaces to add
     """
-    reg_df['mod_x1'] = reg_df['x1_pos'].copy()
-    reg_df['mod_x2'] = reg_df['x2_pos'].copy()
+    reg_df['mod_x1'] = reg_df['x1_pos'].astype(float)
+    reg_df['mod_x2'] = reg_df['x2_pos'].astype(float)
     add_dist = add_char_sp * (reg_df.loc[0, 'x2_pos'] - reg_df.loc[0, 'x1_pos']) / float(reg_df.loc[0, 'length'])
     
     for cur_em in range(len(reg_df)):
@@ -1522,17 +1363,17 @@ def _crt_asc_dic(sit: int, direct: str, subj_id: str) -> Tuple[bool, Dict[str, s
         if os.path.isfile(filename):
             asc_file_dic[subj_id] = filename
         else:
-            print(f'{subj_id}.asc does not exist!')
-            asc_file_exist = False
+            raise FileNotFoundError(
+                f"ASC file not found: {filename}. pyemread expects each "
+                f"participant's file at <direct>/<subj_id>/<subj_id>.asc.")
     elif sit == 1:
         for root, dirs, files in os.walk(direct):
             for name in files:
                 if name.endswith('.asc'):
                     subj = name.split('.')[0]
-                    asc_file_dic[subj] = os.path.join(direct, subj, name)
+                    asc_file_dic[subj] = os.path.join(root, name)
         if not asc_file_dic:
-            print('No ascii files in subfolders!')
-            asc_file_exist = False
+            raise FileNotFoundError(f"No .asc files found under {direct}.")
     
     return asc_file_exist, asc_file_dic
 
@@ -1559,17 +1400,17 @@ def _crt_csv_dic(sit: int, direct: str, subj_id: str, csv_filetype: str) -> Tupl
         if os.path.isfile(filename):
             csv_file_dic[subj_id] = filename
         else:
-            print(f'{subj_id}{csv_filetype}.csv does not exist!')
-            csv_file_exist = False
+            raise FileNotFoundError(
+                f"{filename} not found. Run ext.read_write_srr_asc() or "
+                f"ext.process_subject() first to create it.")
     elif sit == 1:
         for root, dirs, files in os.walk(direct):
             for name in files:
                 if name.endswith(target_file_end):
                     subj = name.split(target_file_end)[0]
-                    csv_file_dic[subj] = os.path.join(direct, subj, name)
+                    csv_file_dic[subj] = os.path.join(root, name)
         if not csv_file_dic:
-            print('No csv files in subfolders!')
-            csv_file_exist = False
+            raise FileNotFoundError(f"No *{target_file_end} files found under {direct}.")
     
     return csv_file_exist, csv_file_dic
 
@@ -1594,16 +1435,14 @@ def _crt_region_dic(direct: str, regfile_name_list: List[str]) -> Tuple[bool, Di
             if fnmatch.fnmatch(file, f'*{target_file_end}'):
                 regfile_dic[str(file)] = os.path.join(direct, str(file))
         if not regfile_dic:
-            print(f'No region file exists in {direct}!')
-            regfile_exist = False
+            raise FileNotFoundError(f"No *.region.csv file found in {direct}.")
     else:
         for regfile in regfile_name_list:
             regfile_name = os.path.join(direct, regfile)
             if os.path.isfile(regfile_name):
                 regfile_dic[regfile] = regfile_name
             else:
-                print(f'{regfile} does not exist!')
-                regfile_exist = False
+                raise FileNotFoundError(f"Region file not found: {regfile_name}")
     
     return regfile_exist, regfile_dic
 
@@ -1629,17 +1468,15 @@ def _crt_fix_rep_dic(sit: int, direct: str, subj_id: str) -> Tuple[bool, Dict[st
         if os.path.isfile(filename):
             fix_rep_dic[subj_id] = filename
         else:
-            print(f'{subj_id}{fix_rep_name_end} does not exist!')
-            fix_rep_exist = False
+            raise FileNotFoundError(f"Fixation report not found: {filename}")
     elif sit == 1:
         for root, dirs, files in os.walk(direct):
             for name in files:
                 if name.endswith(fix_rep_name_end):
                     subj = name.split(fix_rep_name_end)[0]
-                    fix_rep_dic[subj] = os.path.join(direct, subj, name)
+                    fix_rep_dic[subj] = os.path.join(root, name)
         if not fix_rep_dic:
-            print('No fixation report txt files in subfolders!')
-            fix_rep_exist = False
+            raise FileNotFoundError(f"No *{fix_rep_name_end} files found under {direct}.")
     
     return fix_rep_exist, fix_rep_dic
 
@@ -1690,9 +1527,9 @@ def _cal_timestamp(align_method: str, trial_type: str, trialstart: int,
     
     # Assign region_no
     for cur_stamp in range(len(stamp_df_temp)):
-        if (not np.isnan(stamp_df_temp.loc[cur_stamp, 'x_pos1']) and 
+        if (not pd.isna(stamp_df_temp.loc[cur_stamp, 'x_pos1']) and 
             stamp_df_temp.loc[cur_stamp, 'Fix_Sac'] == 'Fix' and 
-            not np.isnan(stamp_df_temp.loc[cur_stamp, 'line_no'])):
+            not pd.isna(stamp_df_temp.loc[cur_stamp, 'line_no'])):
             indlist = reg_df[
                 (reg_df['line_no'] == stamp_df_temp.loc[cur_stamp, 'line_no']) & 
                 (reg_df['mod_x1'] <= stamp_df_temp.loc[cur_stamp, 'x_pos1']) & 
@@ -1736,7 +1573,7 @@ def read_srr_asc(direct: str, subj_id: str, exp_type: str,
         return pd.DataFrame(), pd.DataFrame()
     
     with open(asc_file_dic[subj_id], 'r', encoding='utf-8', errors='replace') as f:
-        print(f"Read ASC: {f.name}")
+        _log.info(f"Read ASC: {f.name}")
         lines = f.readlines()
     
     script, sessdate, srcfile = _get_header(lines)
@@ -1752,13 +1589,13 @@ def read_srr_asc(direct: str, subj_id: str, exp_type: str,
         blinklines, fixlines, saclines, sampfreq, eyerec = _get_blink_fix_sac_sampfreq_eyerec(triallines, 0)
         trial_type, trialstart, trialend, tdur, recstart, recend = _get_tdur(triallines)
         
-        print(f"Read Sac: Trial {trial_id}, Type {trial_type}")
+        _log.info(f"Read Sac: Trial {trial_id}, Type {trial_type}")
         sac_df_temp = _rec_sac(exp_type, trial_id, blinklines, saclines, sampfreq, eyerec,
                                script, sessdate, srcfile, trial_type, trialstart, trialend,
                                tdur, recstart, recend)
         sac_df = pd.concat([sac_df, sac_df_temp], ignore_index=True)
         
-        print(f"Read Fix: Trial {trial_id}, Type {trial_type}")
+        _log.info(f"Read Fix: Trial {trial_id}, Type {trial_type}")
         fix_df_temp = _rec_fix(exp_type, trial_id, blinklines, fixlines, sampfreq, eyerec,
                                script, sessdate, srcfile, trial_type, trialstart, trialend,
                                tdur, recstart, recend, rec_last_fix, lump_fix, ln, zn, mn)
@@ -1844,7 +1681,7 @@ def read_timestamp(direct: str, subj_id: str, exp_type: str) -> pd.DataFrame:
         return pd.DataFrame()
     
     with open(asc_file_dic[subj_id], 'r', encoding='utf-8', errors='replace') as f:
-        print(f"Read ASC: {f.name}")
+        _log.info(f"Read ASC: {f.name}")
         lines = f.readlines()
     
     script, sessdate, srcfile = _get_header(lines)
@@ -1859,7 +1696,7 @@ def read_timestamp(direct: str, subj_id: str, exp_type: str) -> pd.DataFrame:
         blinklines, stamplines, sampfreq, eyerec = _get_blink_fix_sac_sampfreq_eyerec(triallines, 1)
         trial_type, trialstart, trialend, tdur, recstart, recend = _get_tdur(triallines)
         
-        print(f"Read Stamped Eye Movements: Trial {trial_id}; Type {trial_type}")
+        _log.info(f"Read Stamped Eye Movements: Trial {trial_id}; Type {trial_type}")
         stamp_df_temp = _rec_timestamp(exp_type, trial_id, blinklines, stamplines, sampfreq, eyerec,
                                        script, sessdate, srcfile, trial_type, trialstart, trialend,
                                        tdur, recstart, recend)
@@ -1896,87 +1733,263 @@ def read_write_timestamp_b(direct: str, exp_type: str) -> None:
             write_timestamp_report(direct, subj_id, stamp_df)
 
 
+LINE_METHODS = ('SLICE', 'DIFF', 'SAC', 'NEAREST', 'PROVIDED')
+"""Accepted values of ``classify_method``."""
+
+DEFAULT_LINE_METHOD = 'SLICE'
+"""Line-assignment method used when none is specified."""
+
+
+def load_regions(direct: str, regfile_name_list: List[str]) -> Dict[str, pd.DataFrame]:
+    """Read region files into a dictionary keyed by trial type.
+
+    Parameters
+    ----------
+    direct : str
+        Directory containing the region files.
+    regfile_name_list : list of str
+        File names such as ``"story01.region.csv"``. An empty list reads
+        every ``*.region.csv`` file in ``direct``.
+
+    Returns
+    -------
+    dict
+        ``{trial_type: region DataFrame}``, where ``trial_type`` is the
+        file name without ``.region.csv`` (e.g. ``"story01"``).
+    """
+    _, regfile_dic = _crt_region_dic(direct, regfile_name_list)
+    return {os.path.basename(k)[:-len('.region.csv')]: pd.read_csv(v, sep=',', encoding='utf-8')
+            for k, v in regfile_dic.items()}
+
+
+def _sac_lines_from_fix(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
+                        tol: float = 10.0) -> pd.DataFrame:
+    """Label saccades with the lines of the fixations they connect.
+
+    A saccade between two fixations on the same line receives that line
+    number; a saccade between lines ``a`` and ``b`` receives the string
+    ``"a_b"`` (the convention used by the saccade table).
+    """
+    out = sac_df.copy()
+    out['line_no'] = pd.Series([None] * len(out), index=out.index, dtype=object)
+    if len(out) == 0 or len(fix_df) == 0:
+        return out
+    f_end = fix_df['end_time'].to_numpy(float)
+    f_start = fix_df['start_time'].to_numpy(float)
+    f_line = fix_df['line_no'].to_numpy(float)
+    for i in out.index:
+        st, en = float(out.at[i, 'start_time']), float(out.at[i, 'end_time'])
+        prev = np.where(f_end <= st + tol)[0]
+        nxt = np.where(f_start >= en - tol)[0]
+        if len(prev) == 0 or len(nxt) == 0:
+            continue
+        a, b = f_line[prev[-1]], f_line[nxt[0]]
+        if not (np.isfinite(a) and np.isfinite(b)):
+            continue
+        out.at[i, 'line_no'] = float(a) if a == b else f"{int(a)}_{int(b)}"
+    return out
+
+
+def _crl_sac_from_lines(sac_df: pd.DataFrame) -> pd.DataFrame:
+    """Cross-line saccade table from ``"a_b"`` saccade labels."""
+    rows = []
+    for i in sac_df.index:
+        lab = sac_df.at[i, 'line_no']
+        if isinstance(lab, str) and '_' in lab:
+            a, b = lab.split('_')
+            r = sac_df.loc[i]
+            rows.append({'subj': r['subj'], 'trial_id': r['trial_id'], 'eye': r['eye'],
+                         'startline': float(a), 'endline': float(b), 'SaclineIndex': i,
+                         **{c: r.get(c, np.nan) for c in ['start_time', 'end_time', 'duration',
+                                                          'x1_pos', 'y1_pos', 'x2_pos', 'y2_pos',
+                                                          'ampl', 'pk']}})
+    return pd.DataFrame(rows, columns=CRL_SAC_COLUMNS)
+
+
+def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
+                       regions: Dict[str, pd.DataFrame],
+                       classify_method=DEFAULT_LINE_METHOD,
+                       diff_ratio: float = 0.6, frontrange_ratio: float = 0.2,
+                       y_range: int = 60, add_char_sp: int = 1, check: bool = True
+                       ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, List]:
+    """Assign fixations (and saccades) to text lines and words, in memory.
+
+    Every trial and every recorded eye is processed separately.
+
+    Parameters
+    ----------
+    sac_df, fix_df : pandas.DataFrame
+        Saccade and fixation tables in the pyemread schema (see
+        :data:`SAC_COLUMNS` and :data:`FIX_COLUMNS`). ``sac_df`` may be
+        empty when only fixations are available.
+    regions : dict
+        ``{trial_type: region DataFrame}``, e.g. from :func:`load_regions`.
+    classify_method : str or dict
+        One of ``'SLICE'``, ``'DIFF'``, ``'SAC'``, ``'NEAREST'``, ``'PROVIDED'``,
+        or a dictionary that chooses the method per trial, keyed by
+        ``(trial_id, eye)`` or ``trial_id``, with an optional ``'default'``
+        entry, e.g. ``{(1, 'R'): 'DIFF', 'default': 'SLICE'}``.
+        ``'SLICE'``: the slice algorithm of Glandorf and Schroeder (2021)
+        (:func:`pyemread.lines.assign_lines_slice`). ``'DIFF'``: the original
+        pyemread heuristic based on horizontal displacements between
+        fixations. ``'SAC'``: the original heuristic applied to saccades.
+        ``'NEAREST'``: nearest line centre. ``'PROVIDED'``: keep the
+        ``line_no`` values already in ``fix_df`` (e.g. after manual
+        correction in another program). See :mod:`pyemread.lines`.
+    diff_ratio, frontrange_ratio, y_range : float
+        Parameters of the ``'DIFF'`` and ``'SAC'`` methods.
+    add_char_sp : int
+        Character widths added at line edges when assigning words.
+    check : bool
+        Compare the ``'SLICE'`` and ``'DIFF'`` assignments of every trial and
+        flag trials on which they disagree on more than 10% of fixations
+        (default True).
+
+    Returns
+    -------
+    sac_df, crl_sac, fix_df, crl_fix : pandas.DataFrame
+        Saccades with ``line_no``; cross-line saccades; fixations with
+        ``line_no`` and ``region_no``; cross-line fixations.
+    flagged : list of tuple
+        ``(trial_id, eye)`` pairs whose line assignment should be checked
+        visually (see the Notes).
+
+    Notes
+    -----
+    With ``check=True``, a trial (eye) is flagged when the ``'SLICE'`` and
+    ``'DIFF'`` assignments disagree on more than 10% of its fixations (see
+    :func:`pyemread.lines.line_assignment_report`). In the validation
+    reported with the package, every trial on which either method assigned
+    fewer than 90% of fixations correctly was flagged. Flagged trials are
+    logged and should be inspected visually.
+    """
+    if isinstance(classify_method, dict):
+        method_map = {k: str(v).upper() for k, v in classify_method.items()}
+        default = method_map.get('default', DEFAULT_LINE_METHOD)
+    else:
+        method_map, default = {}, str(classify_method).upper()
+    for m in set(method_map.values()) | {default}:
+        if m not in LINE_METHODS:
+            raise ValueError(f"classify_method must be one of {LINE_METHODS}, not {m!r}")
+    new_sac, new_fix, crl_sacs, crl_fixs, flagged = [], [], [], [], []
+    trial_ids = list(dict.fromkeys(list(fix_df['trial_id'].unique())))
+    for trial_id in trial_ids:
+        f_trial = fix_df[fix_df['trial_id'] == trial_id]
+        s_trial = sac_df[sac_df['trial_id'] == trial_id] if len(sac_df) else sac_df
+        trial_type = str(f_trial['trial_type'].iloc[0])
+        if trial_type not in regions:
+            raise KeyError(f"No region file for trial type {trial_type!r} (trial {trial_id}). "
+                           f"Available: {sorted(regions)}")
+        reg_df = regions[trial_type].reset_index(drop=True).copy()
+        _mod_reg_df(reg_df, add_char_sp)
+        for eye in list(dict.fromkeys(f_trial['eye'])):
+            fe = f_trial[f_trial['eye'] == eye].reset_index(drop=True).copy()
+            se = (s_trial[s_trial['eye'] == eye].reset_index(drop=True).copy()
+                  if len(s_trial) else pd.DataFrame(columns=SAC_COLUMNS))
+            se['line_no'] = se['line_no'].astype(object) if 'line_no' in se else None
+            method = method_map.get((trial_id, eye), method_map.get(trial_id, default))
+            _log.info(f"Classify: trial {trial_id} ({trial_type}), eye {eye}, method {method}")
+            if method in ('DIFF', 'SAC'):
+                fe['line_no'] = np.nan
+                if len(se) > 0:
+                    crl_s, _ = _get_crl_sac(reg_df, se, diff_ratio, frontrange_ratio, y_range)
+                else:
+                    crl_s = pd.DataFrame(columns=CRL_SAC_COLUMNS)
+                if method == 'SAC' and len(crl_s) == 0:
+                    raise ValueError("classify_method='SAC' requires saccades.")
+                crl_f, _ = _get_crl_fix(reg_df, crl_s, fe, method, diff_ratio,
+                                        frontrange_ratio, y_range)
+            else:
+                if method == 'PROVIDED':
+                    if 'line_no' not in fe or fe['line_no'].notna().sum() == 0:
+                        raise ValueError("classify_method='PROVIDED' requires line_no values in fix_df.")
+                else:
+                    fe = _lines.assign_lines(fe, reg_df, method=method.lower())
+                crl_f = _crl_fix_from_lines(fe)
+                se = _sac_lines_from_fix(se, fe)
+                crl_s = _crl_sac_from_lines(se)
+            question, agree = False, np.nan
+            if check and len(fe) > 2:
+                rep = _lines.line_assignment_report(fe, reg_df)
+                question, agree = rep['flag'], rep['agree_slice_diff']
+            fe = _lines.assign_regions(fe, reg_df, add_char_sp)
+            if question:
+                flagged.append((trial_id, eye))
+                _log.warning(f"Participant {fe['subj'].iloc[0]}, trial {trial_id}, eye {eye}: the SLICE "
+                             f"and DIFF line assignments agree on only {agree:.0%} of fixations; "
+                             f"inspect this trial (gen.draw_line_assignment).")
+            new_fix.append(fe); new_sac.append(se); crl_fixs.append(crl_f); crl_sacs.append(crl_s)
+    cat = lambda xs, cols: (pd.concat([x for x in xs if len(x)], ignore_index=True)
+                            if any(len(x) for x in xs) else pd.DataFrame(columns=cols))
+    return (cat(new_sac, SAC_COLUMNS), cat(crl_sacs, CRL_SAC_COLUMNS),
+            cat(new_fix, FIX_COLUMNS), cat(crl_fixs, CRL_FIX_COLUMNS), flagged)
+
+
+def _log_flags(direct: str, subj_id: str, flagged: List) -> None:
+    if flagged:
+        with open(os.path.join(direct, 'log.txt'), 'a+') as logfile:
+            for trial_id, eye in flagged:
+                logfile.write(f'Subj: {subj_id} Trial {trial_id} Eye {eye}: SLICE and DIFF line '
+                              f'assignments disagree; inspect this trial\n')
+
+
 def cal_crl_sac_fix(direct: str, subj_id: str, regfile_name_list: List[str],
-                    exp_type: str, classify_method: str = 'DIFF',
+                    exp_type: str = 'RP', classify_method: str = DEFAULT_LINE_METHOD,
                     rec_status: bool = True, diff_ratio: float = 0.6,
                     frontrange_ratio: float = 0.2, y_range: int = 60,
-                    add_char_sp: int = 1) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+                    add_char_sp: int = 1, write: bool = False
+                    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Calculate cross-line saccades and fixations.
-    
-    Args:
-        direct: Directory for CSV and output files
-        subj_id: Subject ID
-        regfile_name_list: List of region file names
-        exp_type: Type of experiment ('RAN', 'RP')
-        classify_method: 'DIFF' or 'SAC' (default 'DIFF')
-        rec_status: Record questionable data (default True)
-        diff_ratio: Ratio for cross-line detection (default 0.6)
-        frontrange_ratio: Ratio for backward cross-line check (default 0.2)
-        y_range: Maximum y difference for line crossing (default 60)
-        add_char_sp: Number of characters to add for overshoot (default 1)
-        
-    Returns:
-        Tuple of (new_sac_df, crl_sac, new_fix_df, crl_fix)
+    Classify a participant's saccades and fixations into text lines and words.
+
+    Reads ``<direct>/<subj_id>/<subj_id>_Sac.csv`` and ``_Fix.csv`` (written
+    by :func:`read_write_srr_asc`), assigns every fixation to a line and a
+    word, and returns the updated tables.
+
+    Parameters
+    ----------
+    direct : str
+        Data directory; region files are read from it and participant files
+        from its sub-folder ``subj_id``.
+    subj_id : str
+        Participant identifier (e.g. ``"1950138"``).
+    regfile_name_list : list of str
+        Region files, e.g. ``["story01.region.csv"]``.
+    exp_type : str
+        Experiment type label, kept for compatibility (default ``"RP"``).
+    classify_method : {'SLICE', 'DIFF', 'SAC', 'NEAREST', 'PROVIDED'}
+        Line-assignment method; see :func:`classify_fixations`.
+    rec_status : bool
+        Append trials whose assignment should be checked to
+        ``<direct>/log.txt`` (default True).
+    diff_ratio, frontrange_ratio, y_range : float
+        Parameters of the ``'DIFF'``/``'SAC'`` methods.
+    add_char_sp : int
+        Character widths added at line edges when assigning words.
+    write : bool
+        If True, overwrite ``_Sac.csv`` and ``_Fix.csv`` with the classified
+        tables and write ``_crlSac.csv`` and ``_crlFix.csv``. If False
+        (default), nothing is written; pass the returned DataFrames to
+        :func:`pyemread.cal.cal_write_em` (``fix_df=``, ``sac_df=``) or call
+        :func:`write_sac_crl_sac` and :func:`write_fix_crl_fix`.
+
+    Returns
+    -------
+    sac_df, crl_sac, fix_df, crl_fix : pandas.DataFrame
     """
-    sac_file_exist, sac_file_dic = _crt_csv_dic(0, direct, subj_id, '_Sac')
-    fix_file_exist, fix_file_dic = _crt_csv_dic(0, direct, subj_id, '_Fix')
-    regfile_exist, regfile_dic = _crt_region_dic(direct, regfile_name_list)
-    
-    if not (sac_file_exist and fix_file_exist and regfile_exist):
-        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
-    
+    _, sac_file_dic = _crt_csv_dic(0, direct, subj_id, '_Sac')
+    _, fix_file_dic = _crt_csv_dic(0, direct, subj_id, '_Fix')
+    regions = load_regions(direct, regfile_name_list)
     sac_df = pd.read_csv(sac_file_dic[subj_id], sep=',')
     fix_df = pd.read_csv(fix_file_dic[subj_id], sep=',')
-    new_sac_df = pd.DataFrame()
-    new_fix_df = pd.DataFrame()
-    crl_sac = pd.DataFrame()
-    crl_fix = pd.DataFrame()
-    
-    print(f"Subj: {subj_id}")
-    
-    for trial_id in sac_df.trial_id.unique():
-        trial_type = sac_df[sac_df.trial_id == trial_id].trial_type.iloc[0]
-        reg_df = _get_reg_df(regfile_dic, trial_type)
-        _mod_reg_df(reg_df, add_char_sp)
-        
-        print(f"Get crlSac: Trial {trial_id}, Type {trial_type}")
-        sac_df_temp = sac_df[sac_df.trial_id == trial_id].reset_index(drop=True)
-        crl_sac_temp, question = _get_crl_sac(reg_df, sac_df_temp, diff_ratio, frontrange_ratio, y_range)
-        new_sac_df = pd.concat([new_sac_df, sac_df_temp], ignore_index=True)
-        crl_sac = pd.concat([crl_sac, crl_sac_temp], ignore_index=True)
-        
-        if rec_status and question:
-            with open(os.path.join(direct, 'log.txt'), 'a+') as logfile:
-                logfile.write(f'Subj: {subj_id} Trial {trial_id} crlSac start/end need check!\n')
-        
-        print(f"Get Fix: Trial {trial_id}, Type {trial_type}")
-        fix_df_temp = fix_df[fix_df.trial_id == trial_id].reset_index(drop=True)
-        crl_fix_temp, question = _get_crl_fix(reg_df, crl_sac_temp, fix_df_temp, classify_method,
-                                              diff_ratio, frontrange_ratio, y_range)
-        
-        # Assign region_no
-        for cur_fix in range(len(fix_df_temp)):
-            if not np.isnan(fix_df_temp.loc[cur_fix, 'line_no']):
-                indlist = reg_df[
-                    (reg_df['line_no'] == fix_df_temp.loc[cur_fix, 'line_no']) & 
-                    (reg_df['mod_x1'] <= fix_df_temp.loc[cur_fix, 'x_pos']) & 
-                    (reg_df['mod_x2'] >= fix_df_temp.loc[cur_fix, 'x_pos'])
-                ].index.tolist()
-                if len(indlist) == 1:
-                    fix_df_temp.loc[cur_fix, 'region_no'] = int(reg_df.WordID[indlist[0]])
-                else:
-                    fix_df_temp.loc[cur_fix, 'region_no'] = np.nan
-            else:
-                fix_df_temp.loc[cur_fix, 'region_no'] = np.nan
-        
-        new_fix_df = pd.concat([new_fix_df, fix_df_temp], ignore_index=True)
-        crl_fix = pd.concat([crl_fix, crl_fix_temp], ignore_index=True)
-        
-        if rec_status and question:
-            with open(os.path.join(direct, 'log.txt'), 'a+') as logfile:
-                logfile.write(f'Subj: {subj_id} Trial {trial_id} crlFix start/end need check!\n')
-    
+    new_sac_df, crl_sac, new_fix_df, crl_fix, flagged = classify_fixations(
+        sac_df, fix_df, regions, classify_method, diff_ratio, frontrange_ratio,
+        y_range, add_char_sp)
+    if rec_status:
+        _log_flags(direct, subj_id, flagged)
+    if write:
+        write_sac_crl_sac(direct, subj_id, new_sac_df, crl_sac)
+        write_fix_crl_fix(direct, subj_id, new_fix_df, crl_fix)
     return new_sac_df, crl_sac, new_fix_df, crl_fix
 
 
@@ -1995,7 +2008,7 @@ def write_fix_crl_fix(direct: str, subj_id: str, fix_df: pd.DataFrame,
 
 
 def cal_write_sac_fix_crl_sac_fix(direct: str, subj_id: str, regfile_name_list: List[str],
-                                  exp_type: str, classify_method: str = 'DIFF',
+                                  exp_type: str = 'RP', classify_method: str = DEFAULT_LINE_METHOD,
                                   rec_status: bool = True, diff_ratio: float = 0.6,
                                   frontrange_ratio: float = 0.2, y_range: int = 60,
                                   add_char_sp: int = 1) -> None:
@@ -2007,7 +2020,7 @@ def cal_write_sac_fix_crl_sac_fix(direct: str, subj_id: str, regfile_name_list: 
         subj_id: Subject ID
         regfile_name_list: List of region file names
         exp_type: Type of experiment ('RAN', 'RP')
-        classify_method: 'DIFF' or 'SAC' (default 'DIFF')
+        classify_method: 'SLICE', 'DIFF', 'SAC', 'NEAREST' or 'PROVIDED' (see classify_fixations)
         rec_status: Record questionable data (default True)
         diff_ratio: Ratio for cross-line detection (default 0.6)
         frontrange_ratio: Ratio for backward cross-line check (default 0.2)
@@ -2023,7 +2036,7 @@ def cal_write_sac_fix_crl_sac_fix(direct: str, subj_id: str, regfile_name_list: 
 
 
 def cal_write_sac_fix_crl_sac_fix_b(direct: str, regfile_name_list: List[str],
-                                    exp_type: str, classify_method: str = 'DIFF',
+                                    exp_type: str = 'RP', classify_method: str = DEFAULT_LINE_METHOD,
                                     rec_status: bool = True, diff_ratio: float = 0.6,
                                     frontrange_ratio: float = 0.2, y_range: int = 60,
                                     add_char_sp: int = 1) -> None:
@@ -2034,7 +2047,7 @@ def cal_write_sac_fix_crl_sac_fix_b(direct: str, regfile_name_list: List[str],
         direct: Directory containing all CSV files
         regfile_name_list: List of region file names
         exp_type: Type of experiment ('RAN', 'RP')
-        classify_method: 'DIFF' or 'SAC' (default 'DIFF')
+        classify_method: 'SLICE', 'DIFF', 'SAC', 'NEAREST' or 'PROVIDED' (see classify_fixations)
         rec_status: Record questionable data (default True)
         diff_ratio: Ratio for cross-line detection (default 0.6)
         frontrange_ratio: Ratio for backward cross-line check (default 0.2)
@@ -2058,129 +2071,76 @@ def cal_write_sac_fix_crl_sac_fix_b(direct: str, regfile_name_list: List[str],
 # =============================================================================
 
 def read_cal_srr_asc(direct: str, subj_id: str, regfile_name_list: List[str],
-                     exp_type: str, classify_method: str = 'DIFF',
+                     exp_type: str = 'RP', classify_method: str = DEFAULT_LINE_METHOD,
                      rec_status: bool = True, diff_ratio: float = 0.6,
                      frontrange_ratio: float = 0.2, y_range: int = 60,
                      add_char_sp: int = 1, rec_last_fix: bool = False,
                      lump_fix: bool = True, ln: int = 50, zn: int = 50,
                      mn: int = 50) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
-    Read ASC file and extract fixation/saccade data with cross-line classification.
-    
-    Combines reading ASCII file, extracting saccades/fixations, and calculating
-    cross-line saccades and fixations in one operation.
-    
-    Args:
-        direct: Directory for output files
-        subj_id: Subject ID
-        regfile_name_list: List of region file names
-        exp_type: Type of experiment ('RAN', 'RP')
-        classify_method: 'DIFF' or 'SAC' (default 'DIFF')
-        rec_status: Record questionable data (default True)
-        diff_ratio: Ratio for cross-line detection (default 0.6)
-        frontrange_ratio: Ratio for backward cross-line check (default 0.2)
-        y_range: Maximum y difference for line crossing (default 60)
-        add_char_sp: Number of characters for overshoot (default 1)
-        rec_last_fix: Include last fixation (default False)
-        lump_fix: Lump short fixations (default True)
-        ln: Maximum duration for lumping (default 50)
-        zn: Maximum distance for lumping (default 50)
-        mn: Minimum legal fixation duration (default 50)
-        
-    Returns:
-        Tuple of (sac_df, crl_sac, fix_df, crl_fix)
+    Read an ASC file and classify its fixations and saccades, in memory.
+
+    Equivalent to :func:`read_srr_asc` followed by
+    :func:`classify_fixations`. See those functions for the parameters.
+
+    Returns
+    -------
+    sac_df, crl_sac, fix_df, crl_fix : pandas.DataFrame
     """
-    ascfile_exist, ascfile_dic = _crt_asc_dic(0, direct, subj_id)
-    regfile_exist, regfile_dic = _crt_region_dic(direct, regfile_name_list)
-    
-    if not (ascfile_exist and regfile_exist):
-        return None, None, None, None
-    
-    # Read ASCII file
-    with open(ascfile_dic[subj_id], 'r') as f:
-        print(f"Read ASC: {f.name}")
-        lines = f.readlines()
-    
-    script, sessdate, srcfile = _get_header(lines)
-    t_idx, t_lines = _get_trial_reg(lines)
-    
-    sac_df = pd.DataFrame(columns=['subj', 'trial_id', 'trial_type', 'sampfreq', 'script',
-                                   'sessdate', 'srcfile', 'trialstart', 'trialend', 'tdur',
-                                   'recstart', 'recend', 'blinks', 'eye', 'start_time',
-                                   'end_time', 'duration', 'x1_pos', 'y1_pos', 'x2_pos',
-                                   'y2_pos', 'ampl', 'pk', 'line_no'])
-    fix_df = pd.DataFrame(columns=['subj', 'trial_id', 'trial_type', 'sampfreq', 'script',
-                                   'sessdate', 'srcfile', 'trialstart', 'trialend', 'tdur',
-                                   'recstart', 'recend', 'blinks', 'eye', 'start_time',
-                                   'end_time', 'duration', 'x_pos', 'y_pos', 'pup_size',
-                                   'valid', 'line_no', 'region_no'])
-    crl_sac = pd.DataFrame(columns=['subj', 'trial_id', 'eye', 'startline', 'endline',
-                                    'SaclineIndex', 'start_time', 'end_time', 'duration',
-                                    'x1_pos', 'y1_pos', 'x2_pos', 'y2_pos', 'ampl', 'pk'])
-    crl_fix = pd.DataFrame(columns=['subj', 'trial_id', 'eye', 'startline', 'endline',
-                                    'FixlineIndex', 'start_time', 'end_time', 'duration',
-                                    'x_pos', 'y_pos', 'pup_size', 'valid'])
-    
-    for ind in range(len(t_lines)):
-        triallines = lines[t_lines[ind, 0] + 1:t_lines[ind, 1]]
-        # Convert 0-indexed trial_id from ASC file to 1-indexed
-        trial_id = int(t_idx[ind, 0].split(' ')[-1]) + 1
-        blinklines, fixlines, saclines, sampfreq, eyerec = _get_blink_fix_sac_sampfreq_eyerec(triallines, 0)
-        trial_type, trialstart, trialend, tdur, recstart, recend = _get_tdur(triallines)
-        reg_df = _get_reg_df(regfile_dic, trial_type)
-        _mod_reg_df(reg_df, add_char_sp)
-        
-        # Read and process saccades
-        print(f"Read Sac and Get crlSac: Trial {trial_id}, Type {trial_type}")
-        sac_df_temp = _rec_sac(exp_type, trial_id, blinklines, saclines, sampfreq,
-                               eyerec, script, sessdate, srcfile, trial_type,
-                               trialstart, trialend, tdur, recstart, recend)
-        crl_sac_temp, question = _get_crl_sac(reg_df, sac_df_temp, diff_ratio,
-                                              frontrange_ratio, y_range)
-        sac_df = pd.concat([sac_df, sac_df_temp], ignore_index=True)
-        crl_sac = pd.concat([crl_sac, crl_sac_temp], ignore_index=True)
-        
-        if rec_status and question:
-            log_path = os.path.join(direct, 'log.txt')
-            with open(log_path, 'a+') as logfile:
-                logfile.write(f'Subj: {sac_df_temp.subj.iloc[0]} Trial {trial_id} crlSac start/end need check!\n')
-        
-        # Read and process fixations
-        print(f"Read Fix and Get crlFix: Trial {trial_id}, Type {trial_type}")
-        fix_df_temp = _rec_fix(exp_type, trial_id, blinklines, fixlines, sampfreq,
-                               eyerec, script, sessdate, srcfile, trial_type,
-                               trialstart, trialend, tdur, recstart, recend,
-                               rec_last_fix, lump_fix, ln, zn, mn)
-        crl_fix_temp, question = _get_crl_fix(reg_df, crl_sac_temp, fix_df_temp,
-                                              classify_method, diff_ratio,
-                                              frontrange_ratio, y_range)
-        
-        # Assign region numbers
-        for cur_fix in range(len(fix_df_temp)):
-            if not pd.isna(fix_df_temp.loc[cur_fix, 'line_no']):
-                indlist = reg_df[(reg_df['line_no'] == fix_df_temp.loc[cur_fix, 'line_no']) &
-                                 ((reg_df['mod_x1'] <= fix_df_temp.loc[cur_fix, 'x_pos']) &
-                                  (reg_df['mod_x2'] >= fix_df_temp.loc[cur_fix, 'x_pos']))].index.tolist()
-                if len(indlist) == 1:
-                    fix_df_temp.loc[cur_fix, 'region_no'] = int(reg_df.WordID.iloc[indlist[0]])
-                else:
-                    fix_df_temp.loc[cur_fix, 'region_no'] = np.nan
-            else:
-                fix_df_temp.loc[cur_fix, 'region_no'] = np.nan
-        
-        fix_df = pd.concat([fix_df, fix_df_temp], ignore_index=True)
-        crl_fix = pd.concat([crl_fix, crl_fix_temp], ignore_index=True)
-        
-        if rec_status and question:
-            log_path = os.path.join(direct, 'log.txt')
-            with open(log_path, 'a+') as logfile:
-                logfile.write(f'Subj: {fix_df_temp.subj.iloc[0]} Trial {trial_id} crlFix start/end need check!\n')
-    
+    regions = load_regions(direct, regfile_name_list)
+    sac_df, fix_df = read_srr_asc(direct, subj_id, exp_type, rec_last_fix, lump_fix, ln, zn, mn)
+    sac_df, crl_sac, fix_df, crl_fix, flagged = classify_fixations(
+        sac_df, fix_df, regions, classify_method, diff_ratio, frontrange_ratio,
+        y_range, add_char_sp)
+    if rec_status:
+        _log_flags(direct, subj_id, flagged)
+    return sac_df, crl_sac, fix_df, crl_fix
+
+
+def process_subject(direct: str, subj_id: str, regfile_name_list: List[str],
+                    classify_method: str = DEFAULT_LINE_METHOD, exp_type: str = 'RP',
+                    **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Read, classify and write one participant's EyeLink data in a single call.
+
+    Reads ``<direct>/<subj_id>/<subj_id>.asc``, extracts fixations and
+    saccades, assigns fixations to lines and words, and writes
+    ``<subj_id>_Sac.csv``, ``_Fix.csv``, ``_crlSac.csv`` and ``_crlFix.csv``
+    to ``<direct>/<subj_id>/``. The written files are ready for
+    :func:`pyemread.cal.cal_write_em`.
+
+    Parameters
+    ----------
+    direct : str
+        Data directory containing the region files and one sub-folder per
+        participant.
+    subj_id : str
+        Participant identifier; the ASC file must be
+        ``<direct>/<subj_id>/<subj_id>.asc``.
+    regfile_name_list : list of str
+        Region files, one per stimulus (trial type).
+    classify_method : {'SLICE', 'DIFF', 'SAC', 'NEAREST', 'PROVIDED'}
+        Line-assignment method (see :func:`classify_fixations`).
+    exp_type : str
+        Experiment type label (default ``"RP"``).
+    **kwargs
+        Further arguments of :func:`read_cal_srr_asc` (e.g. ``lump_fix``,
+        ``diff_ratio``).
+
+    Returns
+    -------
+    sac_df, crl_sac, fix_df, crl_fix : pandas.DataFrame
+    """
+    sac_df, crl_sac, fix_df, crl_fix = read_cal_srr_asc(
+        direct, subj_id, regfile_name_list, exp_type=exp_type,
+        classify_method=classify_method, **kwargs)
+    write_sac_crl_sac(direct, subj_id, sac_df, crl_sac)
+    write_fix_crl_fix(direct, subj_id, fix_df, crl_fix)
     return sac_df, crl_sac, fix_df, crl_fix
 
 
 def read_cal_write_srr_asc(direct: str, subj_id: str, regfile_name_list: List[str],
-                           exp_type: str, classify_method: str = 'DIFF',
+                           exp_type: str = 'RP', classify_method: str = DEFAULT_LINE_METHOD,
                            rec_status: bool = True, diff_ratio: float = 0.6,
                            frontrange_ratio: float = 0.2, y_range: int = 60,
                            add_char_sp: int = 1, rec_last_fix: bool = False,
@@ -2194,7 +2154,7 @@ def read_cal_write_srr_asc(direct: str, subj_id: str, regfile_name_list: List[st
         subj_id: Subject ID
         regfile_name_list: List of region file names
         exp_type: Type of experiment ('RAN', 'RP')
-        classify_method: 'DIFF' or 'SAC' (default 'DIFF')
+        classify_method: 'SLICE', 'DIFF', 'SAC', 'NEAREST' or 'PROVIDED' (see classify_fixations)
         rec_status: Record questionable data (default True)
         diff_ratio: Ratio for cross-line detection (default 0.6)
         frontrange_ratio: Ratio for backward cross-line check (default 0.2)
@@ -2217,7 +2177,7 @@ def read_cal_write_srr_asc(direct: str, subj_id: str, regfile_name_list: List[st
 
 
 def read_cal_write_srr_asc_b(direct: str, regfile_name_list: List[str],
-                             exp_type: str, classify_method: str = 'DIFF',
+                             exp_type: str = 'RP', classify_method: str = DEFAULT_LINE_METHOD,
                              rec_last_fix: bool = False, lump_fix: bool = True,
                              ln: int = 50, zn: int = 50, mn: int = 50,
                              rec_status: bool = True, diff_ratio: float = 0.6,
@@ -2230,7 +2190,7 @@ def read_cal_write_srr_asc_b(direct: str, regfile_name_list: List[str],
         direct: Directory containing all ASC files
         regfile_name_list: List of region file names
         exp_type: Type of experiment ('RAN', 'RP')
-        classify_method: 'DIFF' or 'SAC' (default 'DIFF')
+        classify_method: 'SLICE', 'DIFF', 'SAC', 'NEAREST' or 'PROVIDED' (see classify_fixations)
         rec_last_fix: Include last fixation (default False)
         lump_fix: Lump short fixations (default True)
         ln: Maximum duration for lumping (default 50)
@@ -2289,7 +2249,7 @@ def read_cal_timestamp(direct: str, subj_id: str, regfile_name_list: List[str],
     
     # Read ASCII file
     with open(ascfile_dic[subj_id], 'r') as f:
-        print(f"Read ASC: {f.name}")
+        _log.info(f"Read ASC: {f.name}")
         lines = f.readlines()
     
     script, sessdate, srcfile = _get_header(lines)
@@ -2321,7 +2281,7 @@ def read_cal_timestamp(direct: str, subj_id: str, regfile_name_list: List[str],
         reg_df = _get_reg_df(regfile_dic, trial_type)
         _mod_reg_df(reg_df, add_char_sp)
         
-        print(f"Read Time Stamped Data: Trial {trial_id}, Type {trial_type}")
+        _log.info(f"Read Time Stamped Data: Trial {trial_id}, Type {trial_type}")
         stamp_df_temp = _rec_timestamp(exp_type, trial_id, blinklines, stamplines, sampfreq,
                                        eyerec, script, sessdate, srcfile, trial_type,
                                        trialstart, trialend, tdur, recstart, recend, error_free)
@@ -2420,13 +2380,13 @@ def cal_timestamp(direct: str, subj_id: str, regfile_name_list: List[str],
         sac_df = pd.read_csv(sac_dic[subj_id], sep=',')
         fix_df = pd.read_csv(fix_dic[subj_id], sep=',')
     else:
-        print(f"Invalid align_method: {align_method}")
+        _log.info(f"Invalid align_method: {align_method}")
         return None
     
     stamp_df = pd.read_csv(stamp_dic[subj_id], sep=',')
     new_stamp_df = pd.DataFrame()
     
-    print(f"Processing subject: {subj_id}")
+    _log.info(f"Processing subject: {subj_id}")
     
     for trial_id in stamp_df['trial_id'].unique():
         trial_type = stamp_df.loc[stamp_df.trial_id == trial_id, 'trial_type'].iloc[0]
@@ -2435,7 +2395,7 @@ def cal_timestamp(direct: str, subj_id: str, regfile_name_list: List[str],
         reg_df = _get_reg_df(regfile_dic, trial_type)
         _mod_reg_df(reg_df, add_char_sp)
         
-        print(f"  Processing trial {trial_id}, type: {trial_type}")
+        _log.info(f"  Processing trial {trial_id}, type: {trial_type}")
         stamp_df_temp = stamp_df[stamp_df.trial_id == trial_id].reset_index(drop=True)
         _cal_timestamp(align_method, trial_type, trialstart, reg_df, 
                        stamp_df_temp, fix_rep_df, sac_df, fix_df)
