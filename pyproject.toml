@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyemread"
+version = "2.2.0"
+description = "Multi-line text reading eye-movement experiments: stimuli, fixation-to-line assignment and reading measures"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Tao Gong", email = "gtojty@gmail.com"}]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.21",
+    "pandas>=1.5",
+    "Pillow>=8.0",
+    "matplotlib>=3.4",
+]
+keywords = ["eye tracking", "reading", "return sweeps", "vertical drift", "fixation", "areas of interest"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+docs = ["sphinx>=7", "pydata-sphinx-theme>=0.15"]
+validation = ["eyekit==0.7.1", "lorem", "scikit-learn", "scipy"]
+
+[project.urls]
+Homepage = "https://github.com/gtojty/pyemread"
+Documentation = "https://gtojty.github.io/pyemread/"
+Archive = "https://doi.org/10.5281/zenodo.19622178"
+
+[tool.setuptools]
+packages = ["pyemread"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

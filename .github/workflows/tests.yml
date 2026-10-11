@@ -1,0 +1,70 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, to catch breaking changes in dependencies
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        deps: ["latest"]
+        include:
+          # oldest supported pandas (needs NumPy 1.x)
+          - {os: ubuntu-latest, python: "3.9", deps: "pandas==1.5.3 numpy==1.26.4"}
+          - {os: ubuntu-latest, python: "3.11", deps: "pandas==1.5.3 numpy==1.26.4"}
+          # pandas 2.x
+          - {os: ubuntu-latest, python: "3.11", deps: "pandas==2.2.3"}
+          # other operating systems
+          - {os: windows-latest, python: "3.12", deps: "latest"}
+          - {os: macos-latest, python: "3.12", deps: "latest"}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install FFmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install pyemread in a clean environment
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          if [ "${{ matrix.deps }}" = "latest" ]; then
+            python -m pip install ".[test]"
+          else
+            python -m pip install ${{ matrix.deps }} ".[test]"
+          fi
+          python -m pip list
+      - name: Unit and end-to-end tests
+        run: python -m pytest -v
+      - name: Run the complete tutorial script
+        run: python examples/example_workflow.py
+      - name: Check that the tutorial produced non-empty measures
+        shell: python
+        run: |
+          import pandas as pd
+          em = pd.read_csv("tutorial_output/word_measures.csv")
+          assert len(em) > 1000, len(em)
+          for col in ["ffixurt", "fpurt", "rpurt", "tfurt"]:
+              share = em[col].notna().mean()
+              print(col, round(share, 3))
+              assert share > 0.5, col
+
+  notebook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Execute the tutorial notebook
+        run: |
+          python -m pip install ".[test]" nbclient nbformat ipykernel
+          python -c "import nbformat; from nbclient import NotebookClient; nb = nbformat.read('examples/tutorial.ipynb', 4); NotebookClient(nb, timeout=900, kernel_name='python3').execute()"

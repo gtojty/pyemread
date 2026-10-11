@@ -1,0 +1,5 @@
+Eye-Tracking-BIDS version of the right-eye data of participant 1950138 from the
+pyemread example data (EyeLink 1000, 250 Hz, binocular recording). Samples are in
+screen pixels (1280 x 1024, origin top left). Fixations are those detected online by
+the EyeLink parser. Trials are delimited by TRIALID / TRIAL_RESULT messages, and the
+stimulus of each trial is given by the message '!V TRIAL_VAR picture_name <file>'.

@@ -1,0 +1,20 @@
+{
+  "title": "pyemread: A Python package for multi-line reading experiments",
+  "upload_type": "software",
+  "description": "pyemread takes a multi-line reading study from the passage text to word-level eye-movement measures: stimulus bitmaps with word-level areas of interest, EyeLink, fixation-table and Eye-Tracking-BIDS input, fixation-to-line assignment with trial-level checks, and word- and sentence-level reading measures.",
+  "creators": [
+    {
+      "name": "Gong, Tao",
+      "affiliation": "Haskins Laboratories, Yale University",
+      "orcid": "0000-0002-0587-7544"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "eye tracking",
+    "reading",
+    "vertical drift",
+    "line assignment",
+    "Python"
+  ]
+}
