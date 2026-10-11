@@ -66,7 +66,7 @@ def fig1_architecture():
     box(0.3, 19.6, 8.6, 3.3, "input", "Passage text", "lines of a text,\nfont, screen layout")
     box(10.7, 19.6, 8.6, 3.3, "input", "EyeLink recording", "ASC file\n(edf2asc)")
     box(21.1, 19.6, 8.6, 3.3, "input", "Other recordings",
-        "fixation table, Eye-Tracking-BIDS,\nraw samples; Tobii, Pupil Labs\n(experimental)")
+        "fixation tables from other\nsoftware, Eye-Tracking-BIDS,\nraw samples")
     # modules
     box(0.3, 12.2, 8.6, 6.0, "stim", "gen (stimuli)",
         "praster(): bitmap and\nword region file\n\ndraw_sac_fix(),\ndraw_line_assignment(),\nanimate()")
@@ -165,12 +165,19 @@ def fig3_inspection(data):
                                        r.y2_pos - r.y1_pos, fill=False, lw=0.3, ec="0.65"))
             ax.plot(res.x_pos, res.y_pos, lw=0.3, color="0.55")
             ln = res.line_no.to_numpy(float); ok = np.isfinite(ln)
-            ax.scatter(res.x_pos[ok], res.y_pos[ok], s=7, c=[cmap(int(v - 1) % 10) for v in ln[ok]],
-                       zorder=3, linewidths=0)
+            for lo, mk in ((1, "o"), (11, "s")):     # lines 11 and later: squares
+                sel = ok & (ln >= lo) & (ln < lo + 10)
+                ax.scatter(res.x_pos[sel], res.y_pos[sel], s=7, marker=mk, zorder=3, linewidths=0,
+                           c=[cmap(int(v - 1) % 10) for v in ln[sel]])
+            geo = lines.text_geometry(reg)
+            for lid, yc in zip(geo.line_ids, geo.centers):      # line numbers at the right
+                ax.text(reg.x2_pos.max() + 25, yc, str(int(lid)), fontsize=5.5, va="center",
+                        color=cmap(int(lid - 1) % 10))
             ax.scatter(res.x_pos[~ok], res.y_pos[~ok], s=9, marker="x", c="k", zorder=3, linewidths=0.6)
             ax.set_xlim(reg.x1_pos.min() - 60, reg.x2_pos.max() + 60)
             ax.set_ylim(reg.y2_pos.max() + 70, reg.y1_pos.min() - 70)
             ax.set_aspect("equal"); ax.tick_params(labelsize=7)
+            ax.set_xlabel("x (pixels)", fontsize=7); ax.set_ylabel("y (pixels)", fontsize=7)
             ax.set_title(f"Participant {s}, trial {tr} ({eye} eye): {m}", fontsize=8)
             label(ax, "(" + "abcd"[2 * row + c] + ")")
         print(f"Fig 3 row {row}: agreement slice/diff = {rep['agree_slice_diff']:.2f}")
@@ -222,7 +229,7 @@ def fig4_events(tmp):
 # ---------------------------------------------------------------------------
 def fig5_validation():
     acc = pd.read_csv(RES / "carr_accuracy.csv")
-    acc = acc[acc.method != "slice"]                 # Carr et al.'s slice output ~ pyemread_slice
+    acc = acc[acc.method != "slice"]   # Carr et al.'s slice gives the same assignments as pyemread_slice
     order = (acc.groupby("method").acc_kept.mean().sort_values(ascending=False).index.tolist())
     # algorithm names in italics; pyemread's own methods in bold
     names = {m: (r"$\mathbf{pyemread}$ $\mathbfit{%s}$" % m[9:] if m.startswith("pyemread_")
@@ -250,15 +257,16 @@ def fig5_validation():
         titles = {"noise": "Noise (SD, px)", "slope": "Slope", "shift": "Shift",
                   "regression_within": "P(within-line\nregression)",
                   "regression_between": "P(between-line\nregression)"}
-        styles = {"pyemread_slice": ("#d62728", "-"), "pyemread_diff": ("#1f77b4", "-"),
-                  "attach": ("0.5", ":"), "warp": ("#2ca02c", "--"), "cluster": ("#9467bd", "-.")}
+        styles = {"pyemread_slice": ("#d62728", "-", "o"), "pyemread_diff": ("#1f77b4", "-", "s"),
+                  "attach": ("0.5", ":", "^"), "warp": ("#2ca02c", "--", "D"),
+                  "cluster": ("#9467bd", "-.", "v")}
         for k, f in enumerate(titles):
             a2 = fig.add_subplot(sub[k])
             g = sims[sims.factor == f].groupby(["method", "level"]).accuracy.mean().reset_index()
             for m in show:
                 gm = g[g.method == m]
                 a2.plot(gm.level, gm.accuracy, color=styles[m][0], ls=styles[m][1], lw=1.2,
-                        label=names[m])
+                        marker=styles[m][2], ms=3.2, mfc="white", mew=0.8, label=names[m])
             a2.set_title(titles[f], fontsize=7.5); a2.set_ylim(0, 103); a2.tick_params(labelsize=6.5)
             if k:
                 a2.set_yticklabels([])

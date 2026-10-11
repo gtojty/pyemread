@@ -1350,7 +1350,7 @@ noise,10.0,3,split,100.0
 noise,10.0,3,stretch,100.0
 noise,10.0,3,warp,100.0
 noise,10.0,3,pyemread_diff,100.0
-noise,10.0,3,pyemread_slice,100.0
+noise,10.0,3,pyemread_slice,99.05660377358491
 noise,10.0,4,attach,100.0
 noise,10.0,4,chain,100.0
 noise,10.0,4,cluster,98.78048780487805
@@ -1623,7 +1623,7 @@ noise,10.0,24,split,100.0
 noise,10.0,24,stretch,99.21259842519686
 noise,10.0,24,warp,100.0
 noise,10.0,24,pyemread_diff,100.0
-noise,10.0,24,pyemread_slice,100.0
+noise,10.0,24,pyemread_slice,98.4251968503937
 noise,10.0,25,attach,100.0
 noise,10.0,25,chain,100.0
 noise,10.0,25,cluster,100.0
@@ -1831,7 +1831,7 @@ noise,10.0,40,split,100.0
 noise,10.0,40,stretch,100.0
 noise,10.0,40,warp,100.0
 noise,10.0,40,pyemread_diff,100.0
-noise,10.0,40,pyemread_slice,100.0
+noise,10.0,40,pyemread_slice,99.12280701754386
 noise,10.0,41,attach,100.0
 noise,10.0,41,chain,100.0
 noise,10.0,41,cluster,100.0
@@ -1870,7 +1870,7 @@ noise,10.0,43,split,100.0
 noise,10.0,43,stretch,99.23664122137404
 noise,10.0,43,warp,100.0
 noise,10.0,43,pyemread_diff,100.0
-noise,10.0,43,pyemread_slice,100.0
+noise,10.0,43,pyemread_slice,99.23664122137404
 noise,10.0,44,attach,100.0
 noise,10.0,44,chain,100.0
 noise,10.0,44,cluster,100.0
@@ -1974,7 +1974,7 @@ noise,15.0,1,split,100.0
 noise,15.0,1,stretch,98.0392156862745
 noise,15.0,1,warp,100.0
 noise,15.0,1,pyemread_diff,100.0
-noise,15.0,1,pyemread_slice,100.0
+noise,15.0,1,pyemread_slice,99.01960784313727
 noise,15.0,2,attach,98.1981981981982
 noise,15.0,2,chain,100.0
 noise,15.0,2,cluster,97.2972972972973
@@ -2026,7 +2026,7 @@ noise,15.0,5,split,100.0
 noise,15.0,5,stretch,95.3125
 noise,15.0,5,warp,100.0
 noise,15.0,5,pyemread_diff,100.0
-noise,15.0,5,pyemread_slice,96.875
+noise,15.0,5,pyemread_slice,93.75
 noise,15.0,6,attach,100.0
 noise,15.0,6,chain,100.0
 noise,15.0,6,cluster,99.06542056074767
@@ -2091,7 +2091,7 @@ noise,15.0,10,split,100.0
 noise,15.0,10,stretch,97.59036144578313
 noise,15.0,10,warp,100.0
 noise,15.0,10,pyemread_diff,100.0
-noise,15.0,10,pyemread_slice,97.59036144578313
+noise,15.0,10,pyemread_slice,96.3855421686747
 noise,15.0,11,attach,100.0
 noise,15.0,11,chain,100.0
 noise,15.0,11,cluster,100.0
@@ -2169,7 +2169,7 @@ noise,15.0,16,split,100.0
 noise,15.0,16,stretch,98.13084112149532
 noise,15.0,16,warp,100.0
 noise,15.0,16,pyemread_diff,100.0
-noise,15.0,16,pyemread_slice,95.32710280373831
+noise,15.0,16,pyemread_slice,99.06542056074767
 noise,15.0,17,attach,100.0
 noise,15.0,17,chain,100.0
 noise,15.0,17,cluster,100.0
@@ -2234,7 +2234,7 @@ noise,15.0,21,split,100.0
 noise,15.0,21,stretch,96.8
 noise,15.0,21,warp,100.0
 noise,15.0,21,pyemread_diff,100.0
-noise,15.0,21,pyemread_slice,91.2
+noise,15.0,21,pyemread_slice,90.4
 noise,15.0,22,attach,98.7012987012987
 noise,15.0,22,chain,100.0
 noise,15.0,22,cluster,98.7012987012987
@@ -2273,7 +2273,7 @@ noise,15.0,24,split,100.0
 noise,15.0,24,stretch,93.82716049382715
 noise,15.0,24,warp,100.0
 noise,15.0,24,pyemread_diff,100.0
-noise,15.0,24,pyemread_slice,98.76543209876543
+noise,15.0,24,pyemread_slice,97.53086419753086
 noise,15.0,25,attach,99.09909909909909
 noise,15.0,25,chain,99.09909909909909
 noise,15.0,25,cluster,99.09909909909909
@@ -2468,7 +2468,7 @@ noise,15.0,39,split,100.0
 noise,15.0,39,stretch,100.0
 noise,15.0,39,warp,100.0
 noise,15.0,39,pyemread_diff,100.0
-noise,15.0,39,pyemread_slice,97.8021978021978
+noise,15.0,39,pyemread_slice,98.9010989010989
 noise,15.0,40,attach,97.11538461538461
 noise,15.0,40,chain,100.0
 noise,15.0,40,cluster,97.11538461538461
@@ -2533,7 +2533,7 @@ noise,15.0,44,split,100.0
 noise,15.0,44,stretch,97.89473684210527
 noise,15.0,44,warp,100.0
 noise,15.0,44,pyemread_diff,100.0
-noise,15.0,44,pyemread_slice,98.94736842105263
+noise,15.0,44,pyemread_slice,97.89473684210527
 noise,15.0,45,attach,97.91666666666666
 noise,15.0,45,chain,98.95833333333334
 noise,15.0,45,cluster,97.91666666666666
@@ -2585,7 +2585,7 @@ noise,15.0,48,split,100.0
 noise,15.0,48,stretch,97.5609756097561
 noise,15.0,48,warp,100.0
 noise,15.0,48,pyemread_diff,100.0
-noise,15.0,48,pyemread_slice,98.78048780487805
+noise,15.0,48,pyemread_slice,97.5609756097561
 noise,15.0,49,attach,98.76543209876543
 noise,15.0,49,chain,100.0
 noise,15.0,49,cluster,98.76543209876543
@@ -2624,7 +2624,7 @@ noise,20.0,1,split,100.0
 noise,20.0,1,stretch,84.070796460177
 noise,20.0,1,warp,100.0
 noise,20.0,1,pyemread_diff,100.0
-noise,20.0,1,pyemread_slice,76.99115044247787
+noise,20.0,1,pyemread_slice,12.389380530973451
 noise,20.0,2,attach,88.09523809523809
 noise,20.0,2,chain,92.06349206349206
 noise,20.0,2,cluster,82.53968253968253
@@ -2637,7 +2637,7 @@ noise,20.0,2,split,100.0
 noise,20.0,2,stretch,80.15873015873017
 noise,20.0,2,warp,100.0
 noise,20.0,2,pyemread_diff,100.0
-noise,20.0,2,pyemread_slice,88.88888888888889
+noise,20.0,2,pyemread_slice,88.09523809523809
 noise,20.0,3,attach,90.69767441860465
 noise,20.0,3,chain,95.34883720930233
 noise,20.0,3,cluster,93.02325581395348
@@ -2663,7 +2663,7 @@ noise,20.0,4,split,100.0
 noise,20.0,4,stretch,90.74074074074075
 noise,20.0,4,warp,100.0
 noise,20.0,4,pyemread_diff,100.0
-noise,20.0,4,pyemread_slice,84.25925925925925
+noise,20.0,4,pyemread_slice,53.70370370370371
 noise,20.0,5,attach,90.09009009009009
 noise,20.0,5,chain,94.5945945945946
 noise,20.0,5,cluster,30.630630630630627
@@ -2676,7 +2676,7 @@ noise,20.0,5,split,100.0
 noise,20.0,5,stretch,86.48648648648648
 noise,20.0,5,warp,100.0
 noise,20.0,5,pyemread_diff,100.0
-noise,20.0,5,pyemread_slice,9.00900900900901
+noise,20.0,5,pyemread_slice,87.38738738738738
 noise,20.0,6,attach,85.71428571428571
 noise,20.0,6,chain,92.85714285714286
 noise,20.0,6,cluster,84.92063492063492
@@ -2702,7 +2702,7 @@ noise,20.0,7,split,100.0
 noise,20.0,7,stretch,87.09677419354838
 noise,20.0,7,warp,100.0
 noise,20.0,7,pyemread_diff,96.7741935483871
-noise,20.0,7,pyemread_slice,84.94623655913979
+noise,20.0,7,pyemread_slice,86.02150537634408
 noise,20.0,8,attach,90.83333333333333
 noise,20.0,8,chain,95.83333333333334
 noise,20.0,8,cluster,88.33333333333333
@@ -2767,7 +2767,7 @@ noise,20.0,12,split,100.0
 noise,20.0,12,stretch,90.0990099009901
 noise,20.0,12,warp,100.0
 noise,20.0,12,pyemread_diff,100.0
-noise,20.0,12,pyemread_slice,92.07920792079209
+noise,20.0,12,pyemread_slice,93.06930693069307
 noise,20.0,13,attach,94.54545454545455
 noise,20.0,13,chain,96.36363636363636
 noise,20.0,13,cluster,94.54545454545455
@@ -2793,7 +2793,7 @@ noise,20.0,14,split,100.0
 noise,20.0,14,stretch,89.6103896103896
 noise,20.0,14,warp,100.0
 noise,20.0,14,pyemread_diff,100.0
-noise,20.0,14,pyemread_slice,75.32467532467533
+noise,20.0,14,pyemread_slice,83.11688311688312
 noise,20.0,15,attach,88.57142857142857
 noise,20.0,15,chain,91.42857142857143
 noise,20.0,15,cluster,74.28571428571429
@@ -2806,7 +2806,7 @@ noise,20.0,15,split,100.0
 noise,20.0,15,stretch,84.76190476190476
 noise,20.0,15,warp,100.0
 noise,20.0,15,pyemread_diff,100.0
-noise,20.0,15,pyemread_slice,22.857142857142858
+noise,20.0,15,pyemread_slice,23.809523809523807
 noise,20.0,16,attach,89.8989898989899
 noise,20.0,16,chain,92.92929292929293
 noise,20.0,16,cluster,87.87878787878788
@@ -2819,7 +2819,7 @@ noise,20.0,16,split,100.0
 noise,20.0,16,stretch,86.86868686868688
 noise,20.0,16,warp,100.0
 noise,20.0,16,pyemread_diff,100.0
-noise,20.0,16,pyemread_slice,84.84848484848484
+noise,20.0,16,pyemread_slice,85.85858585858585
 noise,20.0,17,attach,88.18897637795276
 noise,20.0,17,chain,91.33858267716536
 noise,20.0,17,cluster,22.04724409448819
@@ -2832,7 +2832,7 @@ noise,20.0,17,split,100.0
 noise,20.0,17,stretch,87.4015748031496
 noise,20.0,17,warp,100.0
 noise,20.0,17,pyemread_diff,100.0
-noise,20.0,17,pyemread_slice,3.937007874015748
+noise,20.0,17,pyemread_slice,89.76377952755905
 noise,20.0,18,attach,87.5
 noise,20.0,18,chain,92.5
 noise,20.0,18,cluster,90.83333333333333
@@ -2884,7 +2884,7 @@ noise,20.0,21,split,100.0
 noise,20.0,21,stretch,89.43089430894308
 noise,20.0,21,warp,100.0
 noise,20.0,21,pyemread_diff,100.0
-noise,20.0,21,pyemread_slice,67.47967479674797
+noise,20.0,21,pyemread_slice,78.86178861788618
 noise,20.0,22,attach,90.2439024390244
 noise,20.0,22,chain,92.6829268292683
 noise,20.0,22,cluster,87.8048780487805
@@ -2923,7 +2923,7 @@ noise,20.0,24,split,100.0
 noise,20.0,24,stretch,95.0
 noise,20.0,24,warp,100.0
 noise,20.0,24,pyemread_diff,100.0
-noise,20.0,24,pyemread_slice,93.33333333333333
+noise,20.0,24,pyemread_slice,94.16666666666667
 noise,20.0,25,attach,88.88888888888889
 noise,20.0,25,chain,94.44444444444444
 noise,20.0,25,cluster,84.12698412698413
@@ -2962,7 +2962,7 @@ noise,20.0,27,split,100.0
 noise,20.0,27,stretch,87.1559633027523
 noise,20.0,27,warp,100.0
 noise,20.0,27,pyemread_diff,100.0
-noise,20.0,27,pyemread_slice,88.9908256880734
+noise,20.0,27,pyemread_slice,87.1559633027523
 noise,20.0,28,attach,85.36585365853658
 noise,20.0,28,chain,93.90243902439023
 noise,20.0,28,cluster,86.58536585365853
@@ -2988,7 +2988,7 @@ noise,20.0,29,split,100.0
 noise,20.0,29,stretch,78.82352941176471
 noise,20.0,29,warp,100.0
 noise,20.0,29,pyemread_diff,97.6470588235294
-noise,20.0,29,pyemread_slice,83.52941176470588
+noise,20.0,29,pyemread_slice,87.05882352941177
 noise,20.0,30,attach,95.2755905511811
 noise,20.0,30,chain,96.8503937007874
 noise,20.0,30,cluster,95.2755905511811
@@ -3001,7 +3001,7 @@ noise,20.0,30,split,100.0
 noise,20.0,30,stretch,93.7007874015748
 noise,20.0,30,warp,100.0
 noise,20.0,30,pyemread_diff,100.0
-noise,20.0,30,pyemread_slice,90.5511811023622
+noise,20.0,30,pyemread_slice,93.7007874015748
 noise,20.0,31,attach,87.5
 noise,20.0,31,chain,90.38461538461539
 noise,20.0,31,cluster,84.61538461538461
@@ -3053,7 +3053,7 @@ noise,20.0,34,split,100.0
 noise,20.0,34,stretch,87.09677419354838
 noise,20.0,34,warp,100.0
 noise,20.0,34,pyemread_diff,100.0
-noise,20.0,34,pyemread_slice,88.17204301075269
+noise,20.0,34,pyemread_slice,86.02150537634408
 noise,20.0,35,attach,86.86868686868688
 noise,20.0,35,chain,90.9090909090909
 noise,20.0,35,cluster,82.82828282828282
@@ -3066,7 +3066,7 @@ noise,20.0,35,split,100.0
 noise,20.0,35,stretch,89.8989898989899
 noise,20.0,35,warp,100.0
 noise,20.0,35,pyemread_diff,100.0
-noise,20.0,35,pyemread_slice,28.28282828282828
+noise,20.0,35,pyemread_slice,85.85858585858585
 noise,20.0,36,attach,89.1566265060241
 noise,20.0,36,chain,91.56626506024097
 noise,20.0,36,cluster,89.1566265060241
@@ -3092,7 +3092,7 @@ noise,20.0,37,split,100.0
 noise,20.0,37,stretch,85.71428571428571
 noise,20.0,37,warp,100.0
 noise,20.0,37,pyemread_diff,100.0
-noise,20.0,37,pyemread_slice,9.183673469387756
+noise,20.0,37,pyemread_slice,12.244897959183673
 noise,20.0,38,attach,89.81481481481481
 noise,20.0,38,chain,92.5925925925926
 noise,20.0,38,cluster,87.03703703703704
@@ -3131,7 +3131,7 @@ noise,20.0,40,split,100.0
 noise,20.0,40,stretch,88.50574712643679
 noise,20.0,40,warp,100.0
 noise,20.0,40,pyemread_diff,100.0
-noise,20.0,40,pyemread_slice,94.25287356321839
+noise,20.0,40,pyemread_slice,93.10344827586206
 noise,20.0,41,attach,93.84615384615384
 noise,20.0,41,chain,96.15384615384616
 noise,20.0,41,cluster,89.23076923076924
@@ -3144,7 +3144,7 @@ noise,20.0,41,split,100.0
 noise,20.0,41,stretch,84.61538461538461
 noise,20.0,41,warp,100.0
 noise,20.0,41,pyemread_diff,100.0
-noise,20.0,41,pyemread_slice,60.76923076923077
+noise,20.0,41,pyemread_slice,56.15384615384615
 noise,20.0,42,attach,89.32038834951457
 noise,20.0,42,chain,91.2621359223301
 noise,20.0,42,cluster,90.29126213592234
@@ -3157,7 +3157,7 @@ noise,20.0,42,split,100.0
 noise,20.0,42,stretch,86.40776699029125
 noise,20.0,42,warp,100.0
 noise,20.0,42,pyemread_diff,100.0
-noise,20.0,42,pyemread_slice,88.3495145631068
+noise,20.0,42,pyemread_slice,87.37864077669903
 noise,20.0,43,attach,90.1639344262295
 noise,20.0,43,chain,92.62295081967213
 noise,20.0,43,cluster,87.70491803278688
@@ -3222,7 +3222,7 @@ noise,20.0,47,split,100.0
 noise,20.0,47,stretch,90.65420560747664
 noise,20.0,47,warp,100.0
 noise,20.0,47,pyemread_diff,100.0
-noise,20.0,47,pyemread_slice,92.5233644859813
+noise,20.0,47,pyemread_slice,89.7196261682243
 noise,20.0,48,attach,95.1219512195122
 noise,20.0,48,chain,95.1219512195122
 noise,20.0,48,cluster,91.46341463414635
@@ -3235,7 +3235,7 @@ noise,20.0,48,split,100.0
 noise,20.0,48,stretch,95.1219512195122
 noise,20.0,48,warp,100.0
 noise,20.0,48,pyemread_diff,100.0
-noise,20.0,48,pyemread_slice,91.46341463414635
+noise,20.0,48,pyemread_slice,85.36585365853658
 noise,20.0,49,attach,91.37931034482759
 noise,20.0,49,chain,94.82758620689656
 noise,20.0,49,cluster,91.37931034482759
@@ -3274,7 +3274,7 @@ noise,25.0,1,split,100.0
 noise,25.0,1,stretch,72.17391304347827
 noise,25.0,1,warp,100.0
 noise,25.0,1,pyemread_diff,100.0
-noise,25.0,1,pyemread_slice,73.04347826086956
+noise,25.0,1,pyemread_slice,80.8695652173913
 noise,25.0,2,attach,80.80000000000001
 noise,25.0,2,chain,85.6
 noise,25.0,2,cluster,65.60000000000001
@@ -3300,7 +3300,7 @@ noise,25.0,3,split,100.0
 noise,25.0,3,stretch,73.83177570093457
 noise,25.0,3,warp,100.0
 noise,25.0,3,pyemread_diff,100.0
-noise,25.0,3,pyemread_slice,71.02803738317756
+noise,25.0,3,pyemread_slice,67.28971962616822
 noise,25.0,4,attach,80.9090909090909
 noise,25.0,4,chain,82.72727272727273
 noise,25.0,4,cluster,80.9090909090909
@@ -3339,7 +3339,7 @@ noise,25.0,6,split,100.0
 noise,25.0,6,stretch,77.77777777777779
 noise,25.0,6,warp,100.0
 noise,25.0,6,pyemread_diff,100.0
-noise,25.0,6,pyemread_slice,78.57142857142857
+noise,25.0,6,pyemread_slice,64.28571428571429
 noise,25.0,7,attach,84.14634146341463
 noise,25.0,7,chain,89.02439024390245
 noise,25.0,7,cluster,86.58536585365853
@@ -3404,7 +3404,7 @@ noise,25.0,11,split,100.0
 noise,25.0,11,stretch,61.904761904761905
 noise,25.0,11,warp,100.0
 noise,25.0,11,pyemread_diff,100.0
-noise,25.0,11,pyemread_slice,54.285714285714285
+noise,25.0,11,pyemread_slice,52.38095238095239
 noise,25.0,12,attach,85.38461538461539
 noise,25.0,12,chain,88.46153846153845
 noise,25.0,12,cluster,73.84615384615385
@@ -3469,7 +3469,7 @@ noise,25.0,16,split,100.0
 noise,25.0,16,stretch,72.94117647058823
 noise,25.0,16,warp,100.0
 noise,25.0,16,pyemread_diff,97.6470588235294
-noise,25.0,16,pyemread_slice,24.705882352941178
+noise,25.0,16,pyemread_slice,12.941176470588237
 noise,25.0,17,attach,92.3076923076923
 noise,25.0,17,chain,94.87179487179486
 noise,25.0,17,cluster,88.46153846153845
@@ -3534,7 +3534,7 @@ noise,25.0,21,split,100.0
 noise,25.0,21,stretch,70.79646017699115
 noise,25.0,21,warp,100.0
 noise,25.0,21,pyemread_diff,100.0
-noise,25.0,21,pyemread_slice,15.929203539823009
+noise,25.0,21,pyemread_slice,17.699115044247787
 noise,25.0,22,attach,84.94623655913979
 noise,25.0,22,chain,88.17204301075269
 noise,25.0,22,cluster,84.94623655913979
@@ -3560,7 +3560,7 @@ noise,25.0,23,split,100.0
 noise,25.0,23,stretch,76.82926829268293
 noise,25.0,23,warp,100.0
 noise,25.0,23,pyemread_diff,100.0
-noise,25.0,23,pyemread_slice,79.26829268292683
+noise,25.0,23,pyemread_slice,76.82926829268293
 noise,25.0,24,attach,84.44444444444444
 noise,25.0,24,chain,85.55555555555556
 noise,25.0,24,cluster,61.111111111111114
@@ -3586,7 +3586,7 @@ noise,25.0,25,split,100.0
 noise,25.0,25,stretch,76.22950819672131
 noise,25.0,25,warp,100.0
 noise,25.0,25,pyemread_diff,100.0
-noise,25.0,25,pyemread_slice,80.32786885245902
+noise,25.0,25,pyemread_slice,82.78688524590164
 noise,25.0,26,attach,80.0
 noise,25.0,26,chain,87.82608695652175
 noise,25.0,26,cluster,80.0
@@ -3599,7 +3599,7 @@ noise,25.0,26,split,100.0
 noise,25.0,26,stretch,78.26086956521739
 noise,25.0,26,warp,100.0
 noise,25.0,26,pyemread_diff,100.0
-noise,25.0,26,pyemread_slice,79.13043478260869
+noise,25.0,26,pyemread_slice,58.26086956521739
 noise,25.0,27,attach,85.86956521739131
 noise,25.0,27,chain,86.95652173913044
 noise,25.0,27,cluster,82.6086956521739
@@ -3625,7 +3625,7 @@ noise,25.0,28,split,100.0
 noise,25.0,28,stretch,80.89887640449437
 noise,25.0,28,warp,100.0
 noise,25.0,28,pyemread_diff,100.0
-noise,25.0,28,pyemread_slice,87.64044943820225
+noise,25.0,28,pyemread_slice,76.40449438202246
 noise,25.0,29,attach,75.49019607843137
 noise,25.0,29,chain,84.31372549019608
 noise,25.0,29,cluster,65.68627450980392
@@ -3742,7 +3742,7 @@ noise,25.0,37,split,100.0
 noise,25.0,37,stretch,68.57142857142857
 noise,25.0,37,warp,100.0
 noise,25.0,37,pyemread_diff,100.0
-noise,25.0,37,pyemread_slice,77.14285714285715
+noise,25.0,37,pyemread_slice,70.47619047619048
 noise,25.0,38,attach,87.05882352941177
 noise,25.0,38,chain,94.11764705882352
 noise,25.0,38,cluster,84.70588235294117
@@ -3755,7 +3755,7 @@ noise,25.0,38,split,100.0
 noise,25.0,38,stretch,85.88235294117646
 noise,25.0,38,warp,100.0
 noise,25.0,38,pyemread_diff,100.0
-noise,25.0,38,pyemread_slice,62.35294117647059
+noise,25.0,38,pyemread_slice,63.52941176470588
 noise,25.0,39,attach,82.5
 noise,25.0,39,chain,87.5
 noise,25.0,39,cluster,80.0
@@ -3781,7 +3781,7 @@ noise,25.0,40,split,100.0
 noise,25.0,40,stretch,86.90476190476191
 noise,25.0,40,warp,100.0
 noise,25.0,40,pyemread_diff,100.0
-noise,25.0,40,pyemread_slice,94.04761904761905
+noise,25.0,40,pyemread_slice,91.66666666666666
 noise,25.0,41,attach,79.56989247311827
 noise,25.0,41,chain,81.72043010752688
 noise,25.0,41,cluster,78.49462365591397
@@ -3833,7 +3833,7 @@ noise,25.0,44,split,100.0
 noise,25.0,44,stretch,86.51685393258427
 noise,25.0,44,warp,100.0
 noise,25.0,44,pyemread_diff,100.0
-noise,25.0,44,pyemread_slice,8.98876404494382
+noise,25.0,44,pyemread_slice,11.235955056179774
 noise,25.0,45,attach,85.21739130434783
 noise,25.0,45,chain,88.69565217391305
 noise,25.0,45,cluster,84.34782608695653
@@ -3885,7 +3885,7 @@ noise,25.0,48,split,100.0
 noise,25.0,48,stretch,84.04255319148936
 noise,25.0,48,warp,100.0
 noise,25.0,48,pyemread_diff,100.0
-noise,25.0,48,pyemread_slice,85.1063829787234
+noise,25.0,48,pyemread_slice,81.91489361702128
 noise,25.0,49,attach,84.46601941747572
 noise,25.0,49,chain,89.32038834951457
 noise,25.0,49,cluster,81.55339805825243
@@ -3898,7 +3898,7 @@ noise,25.0,49,split,100.0
 noise,25.0,49,stretch,84.46601941747572
 noise,25.0,49,warp,100.0
 noise,25.0,49,pyemread_diff,100.0
-noise,25.0,49,pyemread_slice,34.95145631067961
+noise,25.0,49,pyemread_slice,85.43689320388349
 noise,30.0,0,attach,63.02521008403361
 noise,30.0,0,chain,68.90756302521008
 noise,30.0,0,cluster,64.70588235294117
@@ -3924,7 +3924,7 @@ noise,30.0,1,split,100.0
 noise,30.0,1,stretch,51.93798449612403
 noise,30.0,1,warp,100.0
 noise,30.0,1,pyemread_diff,100.0
-noise,30.0,1,pyemread_slice,53.48837209302325
+noise,30.0,1,pyemread_slice,54.263565891472865
 noise,30.0,2,attach,81.63265306122449
 noise,30.0,2,chain,84.6938775510204
 noise,30.0,2,cluster,72.44897959183673
@@ -3937,7 +3937,7 @@ noise,30.0,2,split,100.0
 noise,30.0,2,stretch,71.42857142857143
 noise,30.0,2,warp,100.0
 noise,30.0,2,pyemread_diff,100.0
-noise,30.0,2,pyemread_slice,64.28571428571429
+noise,30.0,2,pyemread_slice,63.26530612244898
 noise,30.0,3,attach,67.9245283018868
 noise,30.0,3,chain,69.81132075471697
 noise,30.0,3,cluster,50.0
@@ -3963,7 +3963,7 @@ noise,30.0,4,split,100.0
 noise,30.0,4,stretch,70.83333333333334
 noise,30.0,4,warp,100.0
 noise,30.0,4,pyemread_diff,100.0
-noise,30.0,4,pyemread_slice,70.0
+noise,30.0,4,pyemread_slice,67.5
 noise,30.0,5,attach,83.9080459770115
 noise,30.0,5,chain,89.65517241379311
 noise,30.0,5,cluster,85.0574712643678
@@ -4041,7 +4041,7 @@ noise,30.0,10,split,100.0
 noise,30.0,10,stretch,48.97959183673469
 noise,30.0,10,warp,100.0
 noise,30.0,10,pyemread_diff,100.0
-noise,30.0,10,pyemread_slice,21.428571428571427
+noise,30.0,10,pyemread_slice,37.755102040816325
 noise,30.0,11,attach,71.1864406779661
 noise,30.0,11,chain,77.96610169491525
 noise,30.0,11,cluster,65.2542372881356
@@ -4093,7 +4093,7 @@ noise,30.0,14,split,100.0
 noise,30.0,14,stretch,72.36842105263158
 noise,30.0,14,warp,100.0
 noise,30.0,14,pyemread_diff,100.0
-noise,30.0,14,pyemread_slice,69.73684210526315
+noise,30.0,14,pyemread_slice,60.526315789473685
 noise,30.0,15,attach,76.0
 noise,30.0,15,chain,80.0
 noise,30.0,15,cluster,62.0
@@ -4132,7 +4132,7 @@ noise,30.0,17,split,100.0
 noise,30.0,17,stretch,69.64285714285714
 noise,30.0,17,warp,100.0
 noise,30.0,17,pyemread_diff,99.10714285714286
-noise,30.0,17,pyemread_slice,35.714285714285715
+noise,30.0,17,pyemread_slice,65.17857142857143
 noise,30.0,18,attach,61.53846153846154
 noise,30.0,18,chain,66.66666666666666
 noise,30.0,18,cluster,67.94871794871796
@@ -4171,7 +4171,7 @@ noise,30.0,20,split,100.0
 noise,30.0,20,stretch,59.74025974025974
 noise,30.0,20,warp,100.0
 noise,30.0,20,pyemread_diff,100.0
-noise,30.0,20,pyemread_slice,76.62337662337663
+noise,30.0,20,pyemread_slice,35.064935064935064
 noise,30.0,21,attach,77.41935483870968
 noise,30.0,21,chain,78.49462365591397
 noise,30.0,21,cluster,69.89247311827957
@@ -4184,7 +4184,7 @@ noise,30.0,21,split,100.0
 noise,30.0,21,stretch,75.26881720430107
 noise,30.0,21,warp,100.0
 noise,30.0,21,pyemread_diff,100.0
-noise,30.0,21,pyemread_slice,54.83870967741935
+noise,30.0,21,pyemread_slice,53.76344086021505
 noise,30.0,22,attach,70.53571428571429
 noise,30.0,22,chain,75.0
 noise,30.0,22,cluster,37.5
@@ -4223,7 +4223,7 @@ noise,30.0,24,split,100.0
 noise,30.0,24,stretch,56.57894736842105
 noise,30.0,24,warp,100.0
 noise,30.0,24,pyemread_diff,100.0
-noise,30.0,24,pyemread_slice,67.10526315789474
+noise,30.0,24,pyemread_slice,68.42105263157895
 noise,30.0,25,attach,76.69902912621359
 noise,30.0,25,chain,83.49514563106796
 noise,30.0,25,cluster,75.72815533980582
@@ -4262,7 +4262,7 @@ noise,30.0,27,split,100.0
 noise,30.0,27,stretch,64.40677966101694
 noise,30.0,27,warp,100.0
 noise,30.0,27,pyemread_diff,98.30508474576271
-noise,30.0,27,pyemread_slice,22.033898305084744
+noise,30.0,27,pyemread_slice,43.22033898305085
 noise,30.0,28,attach,74.77477477477478
 noise,30.0,28,chain,78.37837837837837
 noise,30.0,28,cluster,73.87387387387388
@@ -4275,7 +4275,7 @@ noise,30.0,28,split,100.0
 noise,30.0,28,stretch,68.46846846846847
 noise,30.0,28,warp,100.0
 noise,30.0,28,pyemread_diff,98.1981981981982
-noise,30.0,28,pyemread_slice,72.97297297297297
+noise,30.0,28,pyemread_slice,66.66666666666666
 noise,30.0,29,attach,77.6595744680851
 noise,30.0,29,chain,79.7872340425532
 noise,30.0,29,cluster,64.8936170212766
@@ -4314,7 +4314,7 @@ noise,30.0,31,split,100.0
 noise,30.0,31,stretch,41.30434782608695
 noise,30.0,31,warp,100.0
 noise,30.0,31,pyemread_diff,100.0
-noise,30.0,31,pyemread_slice,61.95652173913043
+noise,30.0,31,pyemread_slice,51.08695652173913
 noise,30.0,32,attach,73.38709677419355
 noise,30.0,32,chain,79.03225806451613
 noise,30.0,32,cluster,63.70967741935484
@@ -4340,7 +4340,7 @@ noise,30.0,33,split,100.0
 noise,30.0,33,stretch,71.84466019417476
 noise,30.0,33,warp,100.0
 noise,30.0,33,pyemread_diff,100.0
-noise,30.0,33,pyemread_slice,70.87378640776699
+noise,30.0,33,pyemread_slice,66.99029126213593
 noise,30.0,34,attach,80.0
 noise,30.0,34,chain,82.85714285714286
 noise,30.0,34,cluster,78.0952380952381
@@ -4379,7 +4379,7 @@ noise,30.0,36,split,100.0
 noise,30.0,36,stretch,80.67226890756302
 noise,30.0,36,warp,100.0
 noise,30.0,36,pyemread_diff,100.0
-noise,30.0,36,pyemread_slice,76.47058823529412
+noise,30.0,36,pyemread_slice,23.52941176470588
 noise,30.0,37,attach,79.6116504854369
 noise,30.0,37,chain,81.55339805825243
 noise,30.0,37,cluster,55.33980582524271
@@ -4392,7 +4392,7 @@ noise,30.0,37,split,100.0
 noise,30.0,37,stretch,70.87378640776699
 noise,30.0,37,warp,100.0
 noise,30.0,37,pyemread_diff,100.0
-noise,30.0,37,pyemread_slice,63.10679611650486
+noise,30.0,37,pyemread_slice,73.7864077669903
 noise,30.0,38,attach,78.3132530120482
 noise,30.0,38,chain,84.33734939759037
 noise,30.0,38,cluster,60.24096385542169
@@ -4444,7 +4444,7 @@ noise,30.0,41,split,100.0
 noise,30.0,41,stretch,76.5432098765432
 noise,30.0,41,warp,100.0
 noise,30.0,41,pyemread_diff,100.0
-noise,30.0,41,pyemread_slice,60.49382716049383
+noise,30.0,41,pyemread_slice,64.19753086419753
 noise,30.0,42,attach,73.68421052631578
 noise,30.0,42,chain,76.31578947368422
 noise,30.0,42,cluster,50.0
@@ -4457,7 +4457,7 @@ noise,30.0,42,split,98.24561403508771
 noise,30.0,42,stretch,71.05263157894737
 noise,30.0,42,warp,100.0
 noise,30.0,42,pyemread_diff,100.0
-noise,30.0,42,pyemread_slice,64.91228070175438
+noise,30.0,42,pyemread_slice,62.28070175438597
 noise,30.0,43,attach,69.91869918699187
 noise,30.0,43,chain,74.79674796747967
 noise,30.0,43,cluster,63.41463414634146
@@ -4483,7 +4483,7 @@ noise,30.0,44,split,100.0
 noise,30.0,44,stretch,66.11570247933885
 noise,30.0,44,warp,100.0
 noise,30.0,44,pyemread_diff,100.0
-noise,30.0,44,pyemread_slice,70.24793388429752
+noise,30.0,44,pyemread_slice,32.231404958677686
 noise,30.0,45,attach,77.04918032786885
 noise,30.0,45,chain,76.22950819672131
 noise,30.0,45,cluster,71.31147540983606
@@ -4535,7 +4535,7 @@ noise,30.0,48,split,100.0
 noise,30.0,48,stretch,63.49206349206349
 noise,30.0,48,warp,100.0
 noise,30.0,48,pyemread_diff,99.20634920634922
-noise,30.0,48,pyemread_slice,62.698412698412696
+noise,30.0,48,pyemread_slice,61.904761904761905
 noise,30.0,49,attach,71.0
 noise,30.0,49,chain,77.0
 noise,30.0,49,cluster,68.0
@@ -4548,7 +4548,7 @@ noise,30.0,49,split,100.0
 noise,30.0,49,stretch,72.0
 noise,30.0,49,warp,100.0
 noise,30.0,49,pyemread_diff,99.0
-noise,30.0,49,pyemread_slice,24.0
+noise,30.0,49,pyemread_slice,23.0
 noise,35.0,0,attach,70.9090909090909
 noise,35.0,0,chain,78.18181818181819
 noise,35.0,0,cluster,62.727272727272734
@@ -4561,7 +4561,7 @@ noise,35.0,0,split,100.0
 noise,35.0,0,stretch,71.81818181818181
 noise,35.0,0,warp,100.0
 noise,35.0,0,pyemread_diff,98.18181818181819
-noise,35.0,0,pyemread_slice,65.45454545454545
+noise,35.0,0,pyemread_slice,63.63636363636363
 noise,35.0,1,attach,68.90756302521008
 noise,35.0,1,chain,76.47058823529412
 noise,35.0,1,cluster,57.14285714285714
@@ -4639,7 +4639,7 @@ noise,35.0,6,split,100.0
 noise,35.0,6,stretch,60.37735849056604
 noise,35.0,6,warp,100.0
 noise,35.0,6,pyemread_diff,98.11320754716981
-noise,35.0,6,pyemread_slice,71.69811320754717
+noise,35.0,6,pyemread_slice,66.98113207547169
 noise,35.0,7,attach,66.23376623376623
 noise,35.0,7,chain,70.12987012987013
 noise,35.0,7,cluster,31.16883116883117
@@ -4704,7 +4704,7 @@ noise,35.0,11,split,100.0
 noise,35.0,11,stretch,62.5
 noise,35.0,11,warp,100.0
 noise,35.0,11,pyemread_diff,100.0
-noise,35.0,11,pyemread_slice,35.22727272727273
+noise,35.0,11,pyemread_slice,55.68181818181818
 noise,35.0,12,attach,63.91752577319587
 noise,35.0,12,chain,72.16494845360825
 noise,35.0,12,cluster,63.91752577319587
@@ -4717,7 +4717,7 @@ noise,35.0,12,split,100.0
 noise,35.0,12,stretch,62.88659793814433
 noise,35.0,12,warp,100.0
 noise,35.0,12,pyemread_diff,96.90721649484536
-noise,35.0,12,pyemread_slice,61.855670103092784
+noise,35.0,12,pyemread_slice,62.88659793814433
 noise,35.0,13,attach,69.23076923076923
 noise,35.0,13,chain,73.50427350427351
 noise,35.0,13,cluster,41.88034188034188
@@ -4769,7 +4769,7 @@ noise,35.0,16,split,100.0
 noise,35.0,16,stretch,70.10309278350515
 noise,35.0,16,warp,100.0
 noise,35.0,16,pyemread_diff,94.84536082474226
-noise,35.0,16,pyemread_slice,57.73195876288659
+noise,35.0,16,pyemread_slice,55.670103092783506
 noise,35.0,17,attach,68.18181818181817
 noise,35.0,17,chain,71.96969696969697
 noise,35.0,17,cluster,49.24242424242424
@@ -4782,7 +4782,7 @@ noise,35.0,17,split,100.0
 noise,35.0,17,stretch,59.09090909090909
 noise,35.0,17,warp,100.0
 noise,35.0,17,pyemread_diff,100.0
-noise,35.0,17,pyemread_slice,29.545454545454547
+noise,35.0,17,pyemread_slice,27.27272727272727
 noise,35.0,18,attach,60.15625
 noise,35.0,18,chain,60.9375
 noise,35.0,18,cluster,45.3125
@@ -4808,7 +4808,7 @@ noise,35.0,19,split,100.0
 noise,35.0,19,stretch,73.5632183908046
 noise,35.0,19,warp,100.0
 noise,35.0,19,pyemread_diff,100.0
-noise,35.0,19,pyemread_slice,62.06896551724138
+noise,35.0,19,pyemread_slice,27.586206896551722
 noise,35.0,20,attach,67.96116504854369
 noise,35.0,20,chain,78.64077669902912
 noise,35.0,20,cluster,46.601941747572816
@@ -4821,7 +4821,7 @@ noise,35.0,20,split,100.0
 noise,35.0,20,stretch,67.96116504854369
 noise,35.0,20,warp,100.0
 noise,35.0,20,pyemread_diff,100.0
-noise,35.0,20,pyemread_slice,56.310679611650485
+noise,35.0,20,pyemread_slice,53.398058252427184
 noise,35.0,21,attach,71.96261682242991
 noise,35.0,21,chain,77.57009345794393
 noise,35.0,21,cluster,61.6822429906542
@@ -4860,7 +4860,7 @@ noise,35.0,23,split,100.0
 noise,35.0,23,stretch,59.25925925925925
 noise,35.0,23,warp,100.0
 noise,35.0,23,pyemread_diff,100.0
-noise,35.0,23,pyemread_slice,59.25925925925925
+noise,35.0,23,pyemread_slice,58.333333333333336
 noise,35.0,24,attach,60.30534351145038
 noise,35.0,24,chain,67.93893129770993
 noise,35.0,24,cluster,52.67175572519084
@@ -4899,7 +4899,7 @@ noise,35.0,26,split,100.0
 noise,35.0,26,stretch,61.32075471698113
 noise,35.0,26,warp,100.0
 noise,35.0,26,pyemread_diff,100.0
-noise,35.0,26,pyemread_slice,9.433962264150944
+noise,35.0,26,pyemread_slice,10.377358490566039
 noise,35.0,27,attach,62.8099173553719
 noise,35.0,27,chain,60.33057851239669
 noise,35.0,27,cluster,51.2396694214876
@@ -4951,7 +4951,7 @@ noise,35.0,30,split,100.0
 noise,35.0,30,stretch,57.831325301204814
 noise,35.0,30,warp,100.0
 noise,35.0,30,pyemread_diff,100.0
-noise,35.0,30,pyemread_slice,49.39759036144578
+noise,35.0,30,pyemread_slice,46.98795180722892
 noise,35.0,31,attach,70.27027027027027
 noise,35.0,31,chain,73.87387387387388
 noise,35.0,31,cluster,64.86486486486487
@@ -4964,7 +4964,7 @@ noise,35.0,31,split,100.0
 noise,35.0,31,stretch,42.34234234234234
 noise,35.0,31,warp,100.0
 noise,35.0,31,pyemread_diff,100.0
-noise,35.0,31,pyemread_slice,73.87387387387388
+noise,35.0,31,pyemread_slice,72.07207207207207
 noise,35.0,32,attach,65.35433070866141
 noise,35.0,32,chain,66.14173228346458
 noise,35.0,32,cluster,37.00787401574803
@@ -4977,7 +4977,7 @@ noise,35.0,32,split,100.0
 noise,35.0,32,stretch,66.14173228346458
 noise,35.0,32,warp,100.0
 noise,35.0,32,pyemread_diff,99.21259842519686
-noise,35.0,32,pyemread_slice,55.90551181102362
+noise,35.0,32,pyemread_slice,48.818897637795274
 noise,35.0,33,attach,65.9090909090909
 noise,35.0,33,chain,63.63636363636363
 noise,35.0,33,cluster,54.54545454545454
@@ -5003,7 +5003,7 @@ noise,35.0,34,split,100.0
 noise,35.0,34,stretch,70.0
 noise,35.0,34,warp,100.0
 noise,35.0,34,pyemread_diff,95.55555555555556
-noise,35.0,34,pyemread_slice,64.44444444444444
+noise,35.0,34,pyemread_slice,51.11111111111111
 noise,35.0,35,attach,72.95081967213115
 noise,35.0,35,chain,77.8688524590164
 noise,35.0,35,cluster,63.114754098360656
@@ -5016,7 +5016,7 @@ noise,35.0,35,split,100.0
 noise,35.0,35,stretch,65.57377049180327
 noise,35.0,35,warp,100.0
 noise,35.0,35,pyemread_diff,100.0
-noise,35.0,35,pyemread_slice,39.34426229508197
+noise,35.0,35,pyemread_slice,24.59016393442623
 noise,35.0,36,attach,75.83333333333333
 noise,35.0,36,chain,81.66666666666667
 noise,35.0,36,cluster,70.83333333333334
@@ -5055,7 +5055,7 @@ noise,35.0,38,split,98.1981981981982
 noise,35.0,38,stretch,73.87387387387388
 noise,35.0,38,warp,100.0
 noise,35.0,38,pyemread_diff,100.0
-noise,35.0,38,pyemread_slice,55.85585585585585
+noise,35.0,38,pyemread_slice,67.56756756756756
 noise,35.0,39,attach,69.64285714285714
 noise,35.0,39,chain,66.96428571428571
 noise,35.0,39,cluster,25.892857142857146
@@ -5159,7 +5159,7 @@ noise,35.0,46,split,100.0
 noise,35.0,46,stretch,63.559322033898304
 noise,35.0,46,warp,100.0
 noise,35.0,46,pyemread_diff,100.0
-noise,35.0,46,pyemread_slice,61.86440677966102
+noise,35.0,46,pyemread_slice,63.559322033898304
 noise,35.0,47,attach,73.17073170731707
 noise,35.0,47,chain,70.73170731707317
 noise,35.0,47,cluster,76.82926829268293
@@ -5198,7 +5198,7 @@ noise,35.0,49,split,100.0
 noise,35.0,49,stretch,67.0
 noise,35.0,49,warp,100.0
 noise,35.0,49,pyemread_diff,100.0
-noise,35.0,49,pyemread_slice,36.0
+noise,35.0,49,pyemread_slice,34.0
 noise,40.0,0,attach,59.4059405940594
 noise,40.0,0,chain,63.366336633663366
 noise,40.0,0,cluster,55.44554455445545
@@ -5211,7 +5211,7 @@ noise,40.0,0,split,100.0
 noise,40.0,0,stretch,53.46534653465347
 noise,40.0,0,warp,100.0
 noise,40.0,0,pyemread_diff,100.0
-noise,40.0,0,pyemread_slice,58.415841584158414
+noise,40.0,0,pyemread_slice,19.801980198019802
 noise,40.0,1,attach,57.89473684210527
 noise,40.0,1,chain,59.210526315789465
 noise,40.0,1,cluster,53.94736842105263
@@ -5224,7 +5224,7 @@ noise,40.0,1,split,100.0
 noise,40.0,1,stretch,55.26315789473685
 noise,40.0,1,warp,100.0
 noise,40.0,1,pyemread_diff,98.68421052631578
-noise,40.0,1,pyemread_slice,48.68421052631579
+noise,40.0,1,pyemread_slice,61.8421052631579
 noise,40.0,2,attach,58.06451612903226
 noise,40.0,2,chain,60.483870967741936
 noise,40.0,2,cluster,59.67741935483871
@@ -5237,7 +5237,7 @@ noise,40.0,2,split,100.0
 noise,40.0,2,stretch,60.483870967741936
 noise,40.0,2,warp,100.0
 noise,40.0,2,pyemread_diff,100.0
-noise,40.0,2,pyemread_slice,58.06451612903226
+noise,40.0,2,pyemread_slice,55.64516129032258
 noise,40.0,3,attach,56.99999999999999
 noise,40.0,3,chain,56.99999999999999
 noise,40.0,3,cluster,54.0
@@ -5263,7 +5263,7 @@ noise,40.0,4,split,100.0
 noise,40.0,4,stretch,55.04587155963303
 noise,40.0,4,warp,100.0
 noise,40.0,4,pyemread_diff,100.0
-noise,40.0,4,pyemread_slice,50.45871559633027
+noise,40.0,4,pyemread_slice,51.37614678899083
 noise,40.0,5,attach,58.2089552238806
 noise,40.0,5,chain,57.46268656716418
 noise,40.0,5,cluster,47.76119402985074
@@ -5341,7 +5341,7 @@ noise,40.0,10,split,92.24137931034483
 noise,40.0,10,stretch,56.896551724137936
 noise,40.0,10,warp,100.0
 noise,40.0,10,pyemread_diff,96.55172413793103
-noise,40.0,10,pyemread_slice,55.172413793103445
+noise,40.0,10,pyemread_slice,56.896551724137936
 noise,40.0,11,attach,58.65384615384615
 noise,40.0,11,chain,58.65384615384615
 noise,40.0,11,cluster,36.53846153846153
@@ -5354,7 +5354,7 @@ noise,40.0,11,split,100.0
 noise,40.0,11,stretch,54.807692307692314
 noise,40.0,11,warp,100.0
 noise,40.0,11,pyemread_diff,100.0
-noise,40.0,11,pyemread_slice,47.11538461538461
+noise,40.0,11,pyemread_slice,45.19230769230769
 noise,40.0,12,attach,57.73195876288659
 noise,40.0,12,chain,63.91752577319587
 noise,40.0,12,cluster,49.48453608247423
@@ -5393,7 +5393,7 @@ noise,40.0,14,split,100.0
 noise,40.0,14,stretch,53.271028037383175
 noise,40.0,14,warp,100.0
 noise,40.0,14,pyemread_diff,100.0
-noise,40.0,14,pyemread_slice,54.20560747663551
+noise,40.0,14,pyemread_slice,45.794392523364486
 noise,40.0,15,attach,57.03125
 noise,40.0,15,chain,58.59375
 noise,40.0,15,cluster,50.78125
@@ -5419,7 +5419,7 @@ noise,40.0,16,split,97.22222222222221
 noise,40.0,16,stretch,61.111111111111114
 noise,40.0,16,warp,100.0
 noise,40.0,16,pyemread_diff,100.0
-noise,40.0,16,pyemread_slice,51.85185185185185
+noise,40.0,16,pyemread_slice,52.77777777777778
 noise,40.0,17,attach,67.3076923076923
 noise,40.0,17,chain,71.15384615384616
 noise,40.0,17,cluster,62.5
@@ -5432,7 +5432,7 @@ noise,40.0,17,split,100.0
 noise,40.0,17,stretch,59.61538461538461
 noise,40.0,17,warp,100.0
 noise,40.0,17,pyemread_diff,96.15384615384616
-noise,40.0,17,pyemread_slice,31.73076923076923
+noise,40.0,17,pyemread_slice,30.76923076923077
 noise,40.0,18,attach,55.35714285714286
 noise,40.0,18,chain,59.82142857142857
 noise,40.0,18,cluster,54.46428571428571
@@ -5484,7 +5484,7 @@ noise,40.0,21,split,100.0
 noise,40.0,21,stretch,62.20472440944882
 noise,40.0,21,warp,100.0
 noise,40.0,21,pyemread_diff,100.0
-noise,40.0,21,pyemread_slice,50.39370078740157
+noise,40.0,21,pyemread_slice,62.99212598425197
 noise,40.0,22,attach,58.69565217391305
 noise,40.0,22,chain,56.52173913043478
 noise,40.0,22,cluster,48.91304347826087
@@ -5497,7 +5497,7 @@ noise,40.0,22,split,100.0
 noise,40.0,22,stretch,52.17391304347826
 noise,40.0,22,warp,100.0
 noise,40.0,22,pyemread_diff,96.73913043478261
-noise,40.0,22,pyemread_slice,47.82608695652174
+noise,40.0,22,pyemread_slice,58.69565217391305
 noise,40.0,23,attach,60.0
 noise,40.0,23,chain,61.1764705882353
 noise,40.0,23,cluster,45.88235294117647
@@ -5536,7 +5536,7 @@ noise,40.0,25,split,100.0
 noise,40.0,25,stretch,64.34108527131784
 noise,40.0,25,warp,100.0
 noise,40.0,25,pyemread_diff,100.0
-noise,40.0,25,pyemread_slice,65.11627906976744
+noise,40.0,25,pyemread_slice,68.21705426356588
 noise,40.0,26,attach,70.2127659574468
 noise,40.0,26,chain,77.6595744680851
 noise,40.0,26,cluster,27.659574468085108
@@ -5549,7 +5549,7 @@ noise,40.0,26,split,100.0
 noise,40.0,26,stretch,69.14893617021278
 noise,40.0,26,warp,100.0
 noise,40.0,26,pyemread_diff,100.0
-noise,40.0,26,pyemread_slice,32.97872340425532
+noise,40.0,26,pyemread_slice,29.78723404255319
 noise,40.0,27,attach,56.57894736842105
 noise,40.0,27,chain,57.89473684210527
 noise,40.0,27,cluster,28.947368421052634
@@ -5562,7 +5562,7 @@ noise,40.0,27,split,100.0
 noise,40.0,27,stretch,53.94736842105263
 noise,40.0,27,warp,100.0
 noise,40.0,27,pyemread_diff,100.0
-noise,40.0,27,pyemread_slice,40.78947368421053
+noise,40.0,27,pyemread_slice,23.684210526315788
 noise,40.0,28,attach,67.0103092783505
 noise,40.0,28,chain,69.0721649484536
 noise,40.0,28,cluster,59.79381443298969
@@ -5640,7 +5640,7 @@ noise,40.0,33,split,100.0
 noise,40.0,33,stretch,49.45054945054945
 noise,40.0,33,warp,100.0
 noise,40.0,33,pyemread_diff,100.0
-noise,40.0,33,pyemread_slice,52.74725274725275
+noise,40.0,33,pyemread_slice,37.362637362637365
 noise,40.0,34,attach,59.523809523809526
 noise,40.0,34,chain,57.14285714285714
 noise,40.0,34,cluster,19.047619047619047
@@ -5679,7 +5679,7 @@ noise,40.0,36,split,100.0
 noise,40.0,36,stretch,55.12820512820513
 noise,40.0,36,warp,100.0
 noise,40.0,36,pyemread_diff,100.0
-noise,40.0,36,pyemread_slice,60.256410256410255
+noise,40.0,36,pyemread_slice,16.666666666666664
 noise,40.0,37,attach,58.75
 noise,40.0,37,chain,61.25000000000001
 noise,40.0,37,cluster,51.24999999999999
@@ -5705,7 +5705,7 @@ noise,40.0,38,split,100.0
 noise,40.0,38,stretch,61.832061068702295
 noise,40.0,38,warp,100.0
 noise,40.0,38,pyemread_diff,100.0
-noise,40.0,38,pyemread_slice,33.587786259541986
+noise,40.0,38,pyemread_slice,23.66412213740458
 noise,40.0,39,attach,60.97560975609756
 noise,40.0,39,chain,62.601626016260155
 noise,40.0,39,cluster,29.268292682926827
@@ -5718,7 +5718,7 @@ noise,40.0,39,split,100.0
 noise,40.0,39,stretch,63.41463414634146
 noise,40.0,39,warp,100.0
 noise,40.0,39,pyemread_diff,100.0
-noise,40.0,39,pyemread_slice,64.22764227642277
+noise,40.0,39,pyemread_slice,63.41463414634146
 noise,40.0,40,attach,54.03225806451613
 noise,40.0,40,chain,54.03225806451613
 noise,40.0,40,cluster,40.32258064516129
@@ -5744,7 +5744,7 @@ noise,40.0,41,split,100.0
 noise,40.0,41,stretch,61.53846153846154
 noise,40.0,41,warp,100.0
 noise,40.0,41,pyemread_diff,100.0
-noise,40.0,41,pyemread_slice,47.43589743589743
+noise,40.0,41,pyemread_slice,62.82051282051282
 noise,40.0,42,attach,50.89285714285714
 noise,40.0,42,chain,58.03571428571429
 noise,40.0,42,cluster,43.75
@@ -5770,7 +5770,7 @@ noise,40.0,43,split,100.0
 noise,40.0,43,stretch,57.14285714285714
 noise,40.0,43,warp,100.0
 noise,40.0,43,pyemread_diff,100.0
-noise,40.0,43,pyemread_slice,45.45454545454545
+noise,40.0,43,pyemread_slice,54.54545454545454
 noise,40.0,44,attach,61.224489795918366
 noise,40.0,44,chain,68.36734693877551
 noise,40.0,44,cluster,60.204081632653065
@@ -5796,7 +5796,7 @@ noise,40.0,45,split,100.0
 noise,40.0,45,stretch,53.84615384615385
 noise,40.0,45,warp,100.0
 noise,40.0,45,pyemread_diff,98.29059829059828
-noise,40.0,45,pyemread_slice,52.991452991452995
+noise,40.0,45,pyemread_slice,55.55555555555556
 noise,40.0,46,attach,55.932203389830505
 noise,40.0,46,chain,55.08474576271186
 noise,40.0,46,cluster,50.847457627118644
@@ -5835,7 +5835,7 @@ noise,40.0,48,split,100.0
 noise,40.0,48,stretch,71.27659574468085
 noise,40.0,48,warp,100.0
 noise,40.0,48,pyemread_diff,100.0
-noise,40.0,48,pyemread_slice,46.808510638297875
+noise,40.0,48,pyemread_slice,47.87234042553192
 noise,40.0,49,attach,65.21739130434783
 noise,40.0,49,chain,70.65217391304348
 noise,40.0,49,cluster,55.434782608695656

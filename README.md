@@ -5,7 +5,7 @@
 [![tests](https://github.com/gtojty/pyemread/actions/workflows/tests.yml/badge.svg)](https://github.com/gtojty/pyemread/actions/workflows/tests.yml)
 [![docs](https://github.com/gtojty/pyemread/actions/workflows/docs.yml/badge.svg)](https://gtojty.github.io/pyemread/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23302978.svg)](https://doi.org/10.5281/zenodo.23302978)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19622177.svg)](https://doi.org/10.5281/zenodo.19622177)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gtojty/pyemread/blob/master/examples/tutorial.ipynb)
 
 pyemread takes a reading study with multi-line passages from the text to an analysis-ready table of word-level measures:
@@ -20,7 +20,7 @@ Documentation: <https://gtojty.github.io/pyemread/>
 ## Installation
 
 ```bash
-pip install git+https://github.com/gtojty/pyemread.git
+pip install git+https://github.com/gtojty/pyemread.git@v2.2.1   # or omit @v2.2.1 for the latest version
 ```
 
 Python 3.9 or later. The dependencies (NumPy, pandas, Pillow, matplotlib) are installed automatically; they are listed in `pyproject.toml` and `requirements.txt`. FFmpeg is needed only for animations. pyemread is not distributed on PyPI.
@@ -78,8 +78,8 @@ Names from earlier versions (e.g. `ext.cal_crlSacFix`, `cal.cal_write_EM`, `gen.
 
 ## Citation
 
-Please cite the accompanying article (Gong, under review, *Behavior Research Methods*) and the software archive: Gong, T. (2026). pyemread (Version 2.2.0) [Computer software]. https://doi.org/10.5281/zenodo.23302978. See [CITATION.cff](CITATION.cff) and [AUTHORS.md](AUTHORS.md).
+Please cite the accompanying article (Gong, under review, *Behavior Research Methods*) and the software archive: Gong, T. (2026). pyemread (Version 2.2.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.19622177 (this DOI resolves to the latest version; each version also has its own DOI). See [CITATION.cff](CITATION.cff) and [AUTHORS.md](AUTHORS.md).
 
 ## License
 
-MIT; see [LICENSE](LICENSE). The `slice` implementation is adapted from https://github.com/jwcarr/drift (CC BY 4.0).
+The software is licensed under MIT; see [LICENSE](LICENSE). The example data are licensed under CC BY 4.0; see [examples/LICENSE-DATA.md](examples/LICENSE-DATA.md). The `slice` implementation is adapted from https://github.com/jwcarr/drift (CC BY 4.0).

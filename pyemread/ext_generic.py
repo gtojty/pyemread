@@ -216,7 +216,8 @@ def _finish_fix_table(df: pd.DataFrame) -> pd.DataFrame:
 def read_fixations(path: Union[str, pd.DataFrame], column_map: Optional[Dict[str, str]] = None,
                    time_unit: str = 'ms', subj: str = '', trial_type: Optional[str] = None,
                    eye: str = 'R', sep: Optional[str] = None,
-                   encoding: Optional[str] = None) -> pd.DataFrame:
+                   encoding: Optional[str] = None,
+                   sampfreq: Optional[float] = None) -> pd.DataFrame:
     """Read a fixation table produced by any software into the pyemread schema.
 
     Parameters
@@ -227,7 +228,10 @@ def read_fixations(path: Union[str, pd.DataFrame], column_map: Optional[Dict[str
         Maps pyemread names to the file's column names. Recognised keys:
         ``start`` (required), ``end`` or ``duration`` (one required), ``x``,
         ``y`` (required), ``trial_id``, ``trial_type``, ``eye``, ``pupil``.
-        Keys that are omitted are looked up under their own names.
+        Keys that are omitted are looked up under their own names. If both
+        ``end`` and ``duration`` are present, the duration is taken from
+        the file (some programs, e.g. the EyeLink parser, count durations
+        inclusively); otherwise it is ``end - start``.
     time_unit : {'ms', 's', 'us', 'ns'}
         Unit of the start/end/duration columns.
     subj : str
@@ -238,11 +242,21 @@ def read_fixations(path: Union[str, pd.DataFrame], column_map: Optional[Dict[str
         ``"story01"`` for ``story01.region.csv``.
     eye : str
         Eye label used when the table has no ``eye`` column.
+    sep, encoding : str, optional
+        Delimiter and encoding of the file (detected if omitted).
+    sampfreq : float, optional
+        Sampling rate of the recording in Hz, used when short fixations are
+        merged (:func:`pyemread.ext.apply_fixation_validity`).
 
     Returns
     -------
     pandas.DataFrame
         Fixation table with the columns of :data:`pyemread.ext.FIX_COLUMNS`.
+
+    Raises
+    ------
+    KeyError
+        If the start, x, y and end-or-duration columns cannot be found.
     """
     df = path if isinstance(path, pd.DataFrame) else _sniff_table(path, sep, encoding)
     cmap = {k: k for k in ('start', 'end', 'duration', 'x', 'y', 'trial_id', 'trial_type',
@@ -252,10 +266,11 @@ def read_fixations(path: Union[str, pd.DataFrame], column_map: Optional[Dict[str
     if col('start') is None or col('x') is None or col('y') is None:
         raise KeyError("A fixation table needs start, x and y columns; supply column_map.")
     start = _to_ms(df[col('start')], time_unit)
+    duration = _to_ms(df[col('duration')], time_unit) if col('duration') is not None else None
     if col('end') is not None:
         end = _to_ms(df[col('end')], time_unit)
-    elif col('duration') is not None:
-        end = start + _to_ms(df[col('duration')], time_unit)
+    elif duration is not None:
+        end = start + duration
     else:
         raise KeyError("A fixation table needs an end or a duration column.")
     out = _fix_table(start, end, df[col('x')], df[col('y')], subj=subj,
@@ -264,7 +279,9 @@ def read_fixations(path: Union[str, pd.DataFrame], column_map: Optional[Dict[str
                                  if col('trial_type') else (trial_type or '')),
                      eye=(df[col('eye')].astype(str).str.upper().str[0].to_numpy()
                           if col('eye') else eye),
-                     pupil=df[col('pupil')].to_numpy(float) if col('pupil') else np.nan)
+                     pupil=df[col('pupil')].to_numpy(float) if col('pupil') else np.nan,
+                     duration=duration,
+                     sampfreq=float(sampfreq) if sampfreq else np.nan)
     if not col('trial_id') and col('trial_type'):
         # number trials by order of first appearance of each stimulus
         codes = {t: i + 1 for i, t in enumerate(dict.fromkeys(out['trial_type']))}
@@ -342,6 +359,11 @@ def read_bids_eyetrack(physio_path: str) -> Tuple[pd.DataFrame, pd.DataFrame, di
     Coordinates are returned as stored. pyemread expects screen pixels with
     the origin at the top left (``SampleCoordinateSystem`` "gaze-on-screen",
     ``SampleCoordinateUnits`` "pixel"); a warning is issued otherwise.
+
+    Raises
+    ------
+    ValueError
+        If the file is not an eye-tracking recording (``PhysioType``).
     """
     meta = _bids_sidecar(physio_path)
     if meta.get('PhysioType', 'eyetrack') != 'eyetrack':
@@ -421,8 +443,10 @@ def bids_fixations(samples: pd.DataFrame, events: pd.DataFrame, subj: str = '',
         rows.append((on, on + du, np.nanmedian(samples['x'].to_numpy(float)[sel]) if sel.any() else np.nan,
                      np.nanmedian(samples['y'].to_numpy(float)[sel]) if sel.any() else np.nan))
     rows = np.array(rows, float).reshape(-1, 4)
+    dt = np.nanmedian(np.diff(t)) if len(t) > 1 else np.nan
     out = _fix_table(rows[:, 0], rows[:, 1], rows[:, 2], rows[:, 3], subj=subj,
-                     trial_type=trial_type, eye=str(samples['eye'].iloc[0]) if len(samples) else 'R')
+                     trial_type=trial_type, eye=str(samples['eye'].iloc[0]) if len(samples) else 'R',
+                     sampfreq=1000.0 / dt if np.isfinite(dt) and dt > 0 else np.nan)
     return _finish_fix_table(out)
 
 
@@ -631,16 +655,26 @@ def detect_events(samples: pd.DataFrame, method: str = 'IVT',
     sac_df, fix_df : pandas.DataFrame
         Saccade and fixation tables in the pyemread schema
         (:data:`pyemread.ext.SAC_COLUMNS`, :data:`pyemread.ext.FIX_COLUMNS`).
+
+    Raises
+    ------
+    ValueError
+        If ``method`` is not 'IVT' or 'IDT', or if a threshold is given in
+        degrees without ``px_per_deg``.
     """
     from .ext import SAC_COLUMNS
     method = method.upper()
     if method not in ('IVT', 'IDT'):
         raise ValueError("method must be 'IVT' or 'IDT'")
-    needs_ppd = ((method == 'IVT' and velocity_unit == 'deg/s') or
-                 (dispersion_unit == 'deg'))
-    if needs_ppd and not px_per_deg:
-        raise ValueError("Thresholds are in degrees, so px_per_deg must be given "
-                         "(pixels per degree of visual angle).")
+    in_deg = []
+    if method == 'IVT' and velocity_unit == 'deg/s':
+        in_deg.append("velocity_threshold (velocity_unit='deg/s')")
+    if dispersion_unit == 'deg':
+        in_deg.append("dispersion_threshold and merge_dist (dispersion_unit='deg')")
+    if in_deg and not px_per_deg:
+        raise ValueError("px_per_deg (pixels per degree of visual angle) must be given, because "
+                         + " and ".join(in_deg) + " are in degrees. Alternatively, give all "
+                         "thresholds in pixels (velocity_unit='px/s', dispersion_unit='px').")
     ppd = float(px_per_deg) if px_per_deg else 1.0
     v_thr = velocity_threshold * (ppd if velocity_unit == 'deg/s' else 1.0)   # px/s
     d_thr = dispersion_threshold * (ppd if dispersion_unit == 'deg' else 1.0)  # px
@@ -758,7 +792,9 @@ def write_events(direct: str, subj_id: str, sac_df: pd.DataFrame, fix_df: pd.Dat
 
 def process_fixations(direct: str, subj_id: str, fix_df: pd.DataFrame,
                       regfile_name_list: List[str], sac_df: Optional[pd.DataFrame] = None,
-                      classify_method: str = 'SLICE', write: bool = True, **kwargs):
+                      classify_method: str = 'SLICE', write: bool = True,
+                      apply_validity: bool = True, validity_kwargs: Optional[dict] = None,
+                      **kwargs):
     """Assign lines and words to fixations from any source and write the tables.
 
     Parameters
@@ -781,6 +817,13 @@ def process_fixations(direct: str, subj_id: str, fix_df: pd.DataFrame,
     write : bool
         Write ``_Sac.csv``, ``_Fix.csv``, ``_crlSac.csv`` and ``_crlFix.csv``
         (default True).
+    apply_validity : bool
+        Apply the validity rules used for EyeLink data (merging of short
+        fixations, minimum duration, invalid last fixation; see
+        :func:`pyemread.ext.apply_fixation_validity`) so that the measures are
+        computed in the same way for every source (default True).
+    validity_kwargs : dict, optional
+        Options passed to :func:`pyemread.ext.apply_fixation_validity`.
     **kwargs
         Passed to :func:`pyemread.ext.classify_fixations`.
 
@@ -793,6 +836,8 @@ def process_fixations(direct: str, subj_id: str, fix_df: pd.DataFrame,
     regions = ext.load_regions(direct, regfile_name_list)
     fix_df = fix_df.copy()
     fix_df['subj'] = subj_id
+    if apply_validity:
+        fix_df = ext.apply_fixation_validity(fix_df, **(validity_kwargs or {}))
     if sac_df is None:
         sac_df = pd.DataFrame(columns=SAC_COLUMNS)
     sac_df, crl_sac, fix_df, crl_fix, flagged = ext.classify_fixations(

@@ -174,7 +174,9 @@ def _slice(xy: np.ndarray, line_y: np.ndarray, x_thresh: float, y_thresh: float,
     """Line index (0-based) of each fixation. Adapted from Carr et al. (2022),
     ``algorithms/Python/drift_algorithms.py``, function ``slice`` (CC BY 4.0).
     Changes: returns line indices instead of modifying the fixation array,
-    takes the thresholds as arguments, and handles fewer than two lines."""
+    takes the thresholds as arguments, handles fewer than two lines, and
+    discards empty outer proto-lines and places the remaining ones by their
+    vertical position when fewer lines were read than the text has."""
     n = len(xy)
     if len(line_y) < 2:
         return np.zeros(n, dtype=int)
@@ -218,6 +220,12 @@ def _slice(xy: np.ndarray, line_y: np.ndarray, x_thresh: float, y_thresh: float,
             if dist < best:
                 best, best_i = dist, pl_i
         proto_lines[best_i].extend(run)
+    # pyemread change: empty proto-lines beyond the outermost lines that
+    # received fixations are discarded, so that a trial in which only some
+    # lines were read is not mapped to the wrong lines purely by rank.
+    filled = [k for k in proto_lines if proto_lines[k]]
+    lo, hi = min(filled), max(filled)
+    proto_lines = {k: v for k, v in proto_lines.items() if lo <= k <= hi}
     while len(proto_lines) > len(line_y):
         top, bot = min(proto_lines), max(proto_lines)
         if len(proto_lines[top]) < len(proto_lines[bot]):
@@ -226,9 +234,20 @@ def _slice(xy: np.ndarray, line_y: np.ndarray, x_thresh: float, y_thresh: float,
         else:
             proto_lines[bot - 1].extend(proto_lines[bot])
             del proto_lines[bot]
+    keys = sorted(proto_lines)
+    offset = 0
+    if len(keys) < len(line_y):
+        # fewer proto-lines than text lines: place the block of proto-lines
+        # (keeping their order and any gaps) where their mean vertical
+        # positions fit the text lines best
+        mean_y = [np.mean(xy[proto_lines[k], 1]) if proto_lines[k] else np.nan for k in keys]
+        costs = []
+        for o in range(len(line_y) - len(keys) + 1):
+            costs.append(np.nansum([abs(m - line_y[o + r]) for r, m in enumerate(mean_y)]))
+        offset = int(np.argmin(costs))
     out = np.zeros(n, dtype=int)
-    for line_i, pl_i in enumerate(sorted(proto_lines)):
-        out[proto_lines[pl_i]] = line_i
+    for line_i, pl_i in enumerate(keys):
+        out[proto_lines[pl_i]] = line_i + offset
     return out
 
 
@@ -252,7 +271,7 @@ def assign_lines_slice(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
         A run whose mean vertical distance from a proto-line is below
         ``w_thresh`` is merged into it; one between ``w_thresh`` and
         ``n_thresh`` is merged into the adjacent proto-line. Defaults: 0.5
-        and 1.4 line spacings (32 px and 90 px in Carr et al.'s data).
+        and 90/64 (about 1.41) line spacings (32 px and 90 px in Carr et al.'s data).
 
     Returns
     -------
@@ -299,8 +318,9 @@ def assign_lines_diff(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
         Fraction of the return-sweep amplitude that a horizontal move must
         exceed to count as a line change (default 0.6).
     frontrange_ratio : float
-        Fraction of the line treated as its front when testing for a
-        regression to the previous line (default 0.2).
+        Fraction of the expected return-sweep amplitude, measured from the
+        first word of a line, treated as the front of the line when testing
+        for a regression to the previous line (default 0.2).
     y_range : float
         Vertical distance in pixels used to detect the end of reading
         (default 60).
@@ -331,7 +351,9 @@ def assign_lines_diff(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
         _ext._get_fix_line(reg, pd.DataFrame(), work, "DIFF", diff_ratio,
                            frontrange_ratio, y_range)
     except IndexError:
-        # the heuristic found no line change at all
+        # the heuristic found no line change at all: the trial stayed on the
+        # first line (e.g. a single sentence on a multi-line layout)
+        out.loc[ok, "line_no"] = float(reg["line_no"].iloc[0])
         return out
     out.loc[sub["index"].to_numpy(), "line_no"] = work["line_no"].to_numpy()
     return out

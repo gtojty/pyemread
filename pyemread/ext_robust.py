@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Diagnostics for line assignment: trials to inspect, pre-reading scans and
-parameter sensitivity.
+Diagnostics for line assignment: trials to inspect and pre-reading scans.
 
 No automatic line assignment is error-free. This module helps users find
 the trials in which it probably went wrong, so that they can be inspected
@@ -13,13 +12,10 @@ and, if needed, corrected by hand.
   validation reported with this package, every trial on which either
   method assigned fewer than 90% of fixations correctly was flagged.
   Flagged trials should be inspected visually (e.g. with
-  :func:`pyemread.gen.draw_sac_fix`).
+  :func:`pyemread.gen.draw_line_assignment`).
 * :func:`detect_prescan` and :func:`mask_prescan_fixations` mark an initial
   scan of the page that precedes line-by-line reading, so that it does not
   enter first-pass measures.
-* :func:`sensitivity_report` re-runs an assignment over a parameter grid
-  and reports how much the result changes. Stability is not accuracy:
-  a stable assignment can still be wrong.
 
 Examples
 --------
@@ -34,15 +30,14 @@ from __future__ import annotations
 __author__ = "Tao Gong"
 __license__ = "MIT"
 
-from itertools import product
-from typing import Callable, Dict, Iterable, Tuple
+from typing import Dict
 
 import numpy as np
 import pandas as pd
 
 from . import lines as _lines
 
-__all__ = ["trial_report", "detect_prescan", "mask_prescan_fixations", "sensitivity_report"]
+__all__ = ["trial_report", "detect_prescan", "mask_prescan_fixations"]
 
 
 def trial_report(fix_df: pd.DataFrame, regions: Dict[str, pd.DataFrame],
@@ -66,6 +61,11 @@ def trial_report(fix_df: pd.DataFrame, regions: Dict[str, pd.DataFrame],
     pandas.DataFrame
         One row per trial and eye with the fields of
         :func:`pyemread.lines.line_assignment_report`.
+
+    Raises
+    ------
+    KeyError
+        If a trial's stimulus (``trial_type``) is not in ``regions``.
     """
     rows = []
     fx = fix_df
@@ -128,54 +128,3 @@ def mask_prescan_fixations(fix_df: pd.DataFrame, reg_df: pd.DataFrame, **kwargs)
         out['valid'] = 'yes'
     out.loc[detect_prescan(out, reg_df, **kwargs), 'valid'] = 'no'
     return out
-
-
-def _cohens_kappa(a: np.ndarray, b: np.ndarray) -> float:
-    a, b = np.asarray(a), np.asarray(b)
-    if len(a) != len(b) or len(a) == 0:
-        return float('nan')
-    po = float(np.mean(a == b))
-    pe = sum(np.mean(a == c) * np.mean(b == c) for c in np.unique(np.r_[a, b]))
-    return (po - pe) / (1 - pe) if pe < 1 else 1.0
-
-
-def sensitivity_report(classify_fn: Callable[..., Iterable],
-                       grid: Dict[str, Iterable[float]] = None,
-                       reference: Dict[str, float] = None) -> pd.DataFrame:
-    """Re-run a line assignment over a parameter grid and compare with a reference.
-
-    Parameters
-    ----------
-    classify_fn : callable
-        Called with keyword arguments from ``grid``; must return one line
-        number per fixation (e.g. a closure around
-        :func:`pyemread.lines.assign_lines`).
-    grid : dict
-        Parameter names mapped to the values to try. Default:
-        ``{"diff_ratio": (0.4, 0.5, 0.6, 0.7, 0.8),
-        "frontrange_ratio": (0.1, 0.2, 0.3)}``.
-    reference : dict
-        Parameter values of the reference assignment. Default: the package
-        defaults of the ``"diff"`` method (0.6 and 0.2).
-
-    Returns
-    -------
-    pandas.DataFrame
-        One row per parameter combination with ``kappa_vs_reference`` and
-        ``pct_agreement``.
-
-    Notes
-    -----
-    Agreement with a reference measures stability, not accuracy.
-    """
-    grid = grid or {'diff_ratio': (0.4, 0.5, 0.6, 0.7, 0.8), 'frontrange_ratio': (0.1, 0.2, 0.3)}
-    reference = reference or {'diff_ratio': 0.6, 'frontrange_ratio': 0.2}
-    ref = np.nan_to_num(np.asarray(classify_fn(**reference), float), nan=0)
-    rows = []
-    keys = list(grid)
-    for vals in product(*[grid[k] for k in keys]):
-        params = dict(zip(keys, vals))
-        out = np.nan_to_num(np.asarray(classify_fn(**params), float), nan=0)
-        rows.append({**params, 'kappa_vs_reference': _cohens_kappa(ref, out),
-                     'pct_agreement': 100 * float(np.mean(ref == out))})
-    return pd.DataFrame(rows)
