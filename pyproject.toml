@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyemread"
-version = "2.2.0"
+dynamic = ["version"]
 description = "Multi-line text reading eye-movement experiments: stimuli, fixation-to-line assignment and reading measures"
 readme = "README.md"
 license = {text = "MIT"}
@@ -33,10 +33,13 @@ validation = ["eyekit==0.7.1", "lorem", "scikit-learn", "scipy"]
 [project.urls]
 Homepage = "https://github.com/gtojty/pyemread"
 Documentation = "https://gtojty.github.io/pyemread/"
-Archive = "https://doi.org/10.5281/zenodo.23302978"
+Archive = "https://doi.org/10.5281/zenodo.19622177"
 
 [tool.setuptools]
 packages = ["pyemread"]
+
+[tool.setuptools.dynamic]
+version = {attr = "pyemread.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

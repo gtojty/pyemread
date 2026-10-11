@@ -8,6 +8,14 @@ region file ``<trial_type>.region.csv``), ``eye``, ``start_time``,
 ``end_time`` and ``duration`` (ms), ``x_pos`` and ``y_pos`` (screen pixels,
 origin at the top left), and ``valid`` (``"yes"``/``"no"``).
 
+The same validity rules are applied to every route
+(:func:`pyemread.ext.apply_fixation_validity`): per trial and eye, fixations
+of 50 ms or less are merged with a neighbour within 50 pixels, fixations still
+shorter than 50 ms are invalid, and the last fixation is invalid because it
+is usually cut short by the end of the trial. For the generic routes, this
+step is part of :func:`pyemread.ext_generic.process_fixations` and can be
+switched off (``apply_validity=False``).
+
 EyeLink
     :func:`pyemread.ext.process_subject` reads ``<data>/<subj>/<subj>.asc``
     (converted with SR Research's ``edf2asc``). Trials are delimited by the
@@ -16,6 +24,9 @@ EyeLink
 
 Fixation tables from any software
     :func:`pyemread.ext_generic.read_fixations` with a ``column_map``.
+    ``examples/fixation_table`` is an example file; processed with the same
+    line-assignment choices, it gives the same word-level measures as the
+    EyeLink file it was exported from.
 
 Eye-Tracking-BIDS
     :func:`pyemread.ext_generic.read_bids_eyetrack`,

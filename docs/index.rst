@@ -23,5 +23,6 @@ Citation
 --------
 
 If you use pyemread, please cite the accompanying article (Gong, under review,
-*Behavior Research Methods*) and the software archive,
-https://doi.org/10.5281/zenodo.23302978.
+*Behavior Research Methods*) and the software archive on Zenodo,
+https://doi.org/10.5281/zenodo.19622177 (all versions; each release also has
+its own DOI).
