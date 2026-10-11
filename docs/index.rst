@@ -24,4 +24,4 @@ Citation
 
 If you use pyemread, please cite the accompanying article (Gong, under review,
 *Behavior Research Methods*) and the software archive,
-https://doi.org/10.5281/zenodo.19622178.
+https://doi.org/10.5281/zenodo.23302978.

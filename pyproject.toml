@@ -33,7 +33,7 @@ validation = ["eyekit==0.7.1", "lorem", "scikit-learn", "scipy"]
 [project.urls]
 Homepage = "https://github.com/gtojty/pyemread"
 Documentation = "https://gtojty.github.io/pyemread/"
-Archive = "https://doi.org/10.5281/zenodo.19622178"
+Archive = "https://doi.org/10.5281/zenodo.23302978"
 
 [tool.setuptools]
 packages = ["pyemread"]

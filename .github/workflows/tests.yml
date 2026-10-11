@@ -12,21 +12,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-24.04]
         python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         deps: ["latest"]
         include:
           # oldest supported pandas (needs NumPy 1.x)
-          - {os: ubuntu-latest, python: "3.9", deps: "pandas==1.5.3 numpy==1.26.4"}
-          - {os: ubuntu-latest, python: "3.11", deps: "pandas==1.5.3 numpy==1.26.4"}
+          - {os: ubuntu-24.04, python: "3.9", deps: "pandas==1.5.3 numpy==1.26.4"}
+          - {os: ubuntu-24.04, python: "3.11", deps: "pandas==1.5.3 numpy==1.26.4"}
           # pandas 2.x
-          - {os: ubuntu-latest, python: "3.11", deps: "pandas==2.2.3"}
+          - {os: ubuntu-24.04, python: "3.11", deps: "pandas==2.2.3"}
           # other operating systems
           - {os: windows-latest, python: "3.12", deps: "latest"}
           - {os: macos-latest, python: "3.12", deps: "latest"}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Install FFmpeg (Linux)
@@ -58,10 +58,10 @@ jobs:
               assert share > 0.5, col
 
   notebook:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Execute the tutorial notebook
