@@ -136,7 +136,8 @@ samples, events, meta = eg.read_bids_eyetrack(str(physio))
 trials = eg.trials_from_messages(events, r"TRIALID", r"TRIAL_RESULT",
                                  r"picture_name\s+(\S+?)\.png")
 fix = eg.epoch(eg.bids_fixations(samples, events), trials)   # tracker's fixations
-eg.process_fixations(str(DATA), "bids-1950138", fix, REGIONS)
+eg.process_fixations(str(DATA), "bids-1950138", fix, REGIONS,
+                     classify_method=CHOICES["1950138"])
 em_bids = cal.cal_write_em(str(DATA), "bids-1950138", REGIONS)
 
 # Alternatively, detect fixations in the raw samples (screen-based trackers):

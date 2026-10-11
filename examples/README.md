@@ -2,8 +2,8 @@
 
 | Folder / file | Contents |
 |---|---|
-| `oralReading/` | EyeLink recordings (`<id>/<id>.asc`, binocular, 250 Hz) of three participants (1950138, 1950149, 1950168) reading three English passages aloud, the audio recorded during each trial (`<id>/<id>-<trial>.wav`), example animations (`.mp4`), and the region files of the passages (`story01–03.region.csv`). From Gong and Shuai (2023), redistributed with permission. |
-| `textRasters/` | Passages (`.txt`), bitmaps and region files in English, Chinese, Japanese and Korean, and the CJK fonts used to render them (not covered by the MIT or CC BY licences; see LICENSE-DATA.md). |
+| `oralReading/` | EyeLink recordings (`<id>/<id>.asc`, binocular, 250 Hz) of three participants (1950138, 1950149, 1950168) reading three English passages aloud, the audio recorded during each trial (`<id>/<id>-<trial>.wav`), and the region files of the passages (`story01–03.region.csv`). From Gong and Shuai (2023), redistributed with permission. |
+| `textRasters/` | Passages (`.txt`), bitmaps and region files in English, Chinese, Japanese and Korean, The Chinese, Japanese and Korean examples were rendered with the Windows fonts SimSun and Batang, which are not distributed; see LICENSE-DATA.md for where to find them and for free alternatives. |
 | `bids_example/` | Eye-Tracking-BIDS version of the right-eye data of participant 1950138 (created by `make_bids_example.py`). |
 | `fixation_table/` | The right-eye fixations of participant 1950138 as a plain CSV file of the kind exported by other software (created by `make_fixation_table_example.py`). |
 | `example_workflow.py` | The complete tutorial of the accompanying article. |

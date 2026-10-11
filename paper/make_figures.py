@@ -313,8 +313,8 @@ def fig6_measures():
     w4, w3 = em.loc[4], em.loc[3]
     txt = ("Word 4 (sold):\n"
            f"  first-fixation duration = {w4.ffixurt:.0f} ms (fix. 3)\n"
-           f"  gaze duration = {w4.fpurt:.0f} ms (fix. 3-4)\n"
-           f"  regression-path duration = {w4.rpurt:.0f} ms (fix. 3-7)\n"
+           f"  gaze duration = {w4.fpurt:.0f} ms (fix. 3–4)\n"
+           f"  regression-path duration = {w4.rpurt:.0f} ms (fix. 3–7)\n"
            f"  re-reading (second pass) = {w4.spurt:.0f} ms (fix. 7)\n"
            f"  total time = {w4.tfurt:.0f} ms\n\n"
            "Word 3 (man): fixated only after\n"

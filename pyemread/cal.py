@@ -515,7 +515,8 @@ def _iter_trials(fix_df: pd.DataFrame):
 def cal_write_em(direct: str, subj_id: str, regfile_name_list: List[str],
                  add_char_sp: int = 1, fix_df: Optional[pd.DataFrame] = None,
                  sac_df: Optional[pd.DataFrame] = None, write: bool = True,
-                 strict_first_pass: bool = True, ignore_glances: bool = True) -> pd.DataFrame:
+                 strict_first_pass: bool = True, ignore_glances: bool = True,
+                 max_glance: int = 2) -> pd.DataFrame:
     """
     Calculate (and write) word-level eye-movement measures for a participant.
 
@@ -541,6 +542,8 @@ def cal_write_em(direct: str, subj_id: str, regfile_name_list: List[str],
         ``<subj_id>_EM_<trial_type>_<eye>.csv`` (default True).
     strict_first_pass, ignore_glances : bool
         See :func:`compute_word_measures`.
+    max_glance : int
+        Longest excursion, in fixations, treated as a glance (default 2).
 
     Returns
     -------
@@ -577,7 +580,7 @@ def cal_write_em(direct: str, subj_id: str, regfile_name_list: List[str],
             se = sac_df[(sac_df['trial_id'] == trial_id) & (sac_df['eye'] == eye)]
         _log.info(f'Cal EM measures: Subj {subj_id}, trial {trial_id}, eye {eye}')
         em = compute_word_measures(fe, reg_df, se, add_char_sp, subj_id, strict_first_pass,
-                                   ignore_glances)
+                                   ignore_glances, max_glance)
         if write:
             os.makedirs(os.path.join(direct, subj_id), exist_ok=True)
             em.to_csv(os.path.join(direct, subj_id, f'{subj_id}_EM_{trial_type}_{eye}.csv'),

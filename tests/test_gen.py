@@ -8,7 +8,7 @@ import pytest
 from matplotlib import font_manager
 
 from pyemread import ext, gen
-from conftest import EXAMPLES, REGIONS, ROOT, SUBJECT
+from conftest import EXAMPLES, REGIONS, ROOT, SUBJECT, cjk_font
 
 RASTERS = ROOT / "examples" / "textRasters"
 MONO = font_manager.findfont("DejaVu Sans Mono")
@@ -26,11 +26,11 @@ def test_praster_english(tmp_path):
     assert (reg["x2_pos"] > reg["x1_pos"]).all() and (reg["y2_pos"] > reg["y1_pos"]).all()
 
 
-@pytest.mark.skipif(not (RASTERS / "simsun.ttc").exists(), reason="CJK font not available")
+@pytest.mark.skipif(cjk_font("simsun.ttc") is None, reason="CJK font not available")
 def test_praster_chinese(tmp_path):
     text = [ln.strip() for ln in open(RASTERS / "ChineseStory.txt", encoding="utf-8")
             if ln.strip() and not ln.startswith("#")]
-    gen.praster(direct=str(tmp_path), fontpath=str(RASTERS / "simsun.ttc"), st_pos="TopLeft",
+    gen.praster(direct=str(tmp_path), fontpath=cjk_font("simsun.ttc"), st_pos="TopLeft",
                 lang_type="Chinese", text=text, ID="zh")
     reg = pd.read_csv(tmp_path / "zh.region.csv")
     assert len(reg) > 10 and reg["line_no"].max() >= 2

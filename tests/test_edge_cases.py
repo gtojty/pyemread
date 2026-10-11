@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from pyemread import cal, ext, ext_generic as eg, gen, lines
-from conftest import EXAMPLES, ROOT, SUBJECT
+from conftest import EXAMPLES, ROOT, SUBJECT, cjk_font
 from test_lines import passage
 from test_measures import em_for, region
 
@@ -97,11 +97,12 @@ def test_praster_strips_byte_order_mark(tmp_path):
     assert reg["Word"].iloc[0] == "The" and reg["length"].iloc[0] == 3
 
 
-@pytest.mark.skipif(not (RASTERS / "batang.ttc").exists(), reason="CJK font not available")
+@pytest.mark.skipif(cjk_font("simsun.ttc") is None or cjk_font("batang.ttc") is None,
+                    reason="CJK fonts not available")
 @pytest.mark.parametrize("lang", ["Japanese", "Korean"])
 def test_cjk_without_spaces_gives_one_aoi_per_character(tmp_path, lang):
     text = ["今日は良い天気です。", "明日も晴れる。"] if lang == "Japanese" else ["오늘은좋은날", "내일도맑음。"]
-    font = str(RASTERS / ("simsun.ttc" if lang == "Japanese" else "batang.ttc"))
+    font = cjk_font("simsun.ttc" if lang == "Japanese" else "batang.ttc")
     gen.praster(str(tmp_path), font, "TopLeft", lang, text=text, ID="cjk")
     reg = pd.read_csv(tmp_path / "cjk.region.csv")
     n_punct = sum(t.count("。") for t in text)
@@ -120,3 +121,16 @@ def test_prescan_before_reading_is_detected_and_masked():
     mask = ext_robust.detect_prescan(fix, reg)
     assert mask.tolist() == [True] * 4 + [False] * 6
     assert (ext_robust.mask_prescan_fixations(fix, reg)["valid"][:4] == "no").all()
+
+
+def test_classify_lines_single_stimulus():
+    reg = passage(n_lines=4)
+    fix, truth = _lines_read(reg, 4)
+    n = len(fix)
+    fix = fix.assign(subj="S", trial_id=1, eye="R", start_time=np.arange(n) * 250.0,
+                     end_time=np.arange(n) * 250.0 + 200, duration=200.0, valid="yes")
+    sac, crl_sac, out, crl_fix = eg.classify_lines(pd.DataFrame(columns=ext.SAC_COLUMNS),
+                                                   fix, reg)
+    assert (out["line_no"].to_numpy() == truth).all()
+    assert out["region_no"].notna().all()
+    assert len(crl_fix) == 3
