@@ -1,0 +1,31 @@
+{
+  "PhysioType": "eyetrack",
+  "Manufacturer": "SR-Research",
+  "ManufacturersModelName": "EyeLink 1000",
+  "Columns": [
+    "timestamp",
+    "x_coordinate",
+    "y_coordinate",
+    "pupil_size"
+  ],
+  "SamplingFrequency": 250,
+  "SampleCoordinateSystem": "gaze-on-screen",
+  "EnvironmentCoordinates": "top-left",
+  "ScreenResolution": [
+    1280,
+    1024
+  ],
+  "timestamp": {
+    "Description": "EyeLink time stamp",
+    "Units": "ms"
+  },
+  "x_coordinate": {
+    "Units": "pixel"
+  },
+  "y_coordinate": {
+    "Units": "pixel"
+  },
+  "pupil_size": {
+    "Units": "a.u."
+  }
+}
