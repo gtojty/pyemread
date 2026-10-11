@@ -38,14 +38,15 @@ the vendor software before relying on it.
 Examples
 --------
 >>> from pyemread import ext_generic as eg, cal
->>> fix = eg.read_fixations("P01_fixations.csv",
-...                         column_map={"start": "start_ms", "end": "end_ms",
-...                                     "x": "x_px", "y": "y_px",
-...                                     "trial_type": "stimulus"},
-...                         subj="P01")                      # doctest: +SKIP
->>> eg.process_fixations("data", "P01", fix,
-...                      ["story01.region.csv"])              # doctest: +SKIP
->>> cal.cal_write_em("data", "P01", ["story01.region.csv"])  # doctest: +SKIP
+>>> regions = ["story01.region.csv", "story02.region.csv", "story03.region.csv"]
+>>> fix = eg.read_fixations("examples/fixation_table/1950138_fixations.csv",
+...                         column_map={"trial_id": "trial", "trial_type": "stimulus",
+...                                     "start": "start_ms", "end": "end_ms",
+...                                     "duration": "duration_ms",
+...                                     "x": "x_px", "y": "y_px"},
+...                         sampfreq=250)                    # doctest: +SKIP
+>>> eg.process_fixations("data", "table-1950138", fix, regions)   # doctest: +SKIP
+>>> cal.cal_write_em("data", "table-1950138", regions)            # doctest: +SKIP
 """
 
 from __future__ import annotations

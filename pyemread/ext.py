@@ -2015,10 +2015,10 @@ def _log_flags(direct: str, subj_id: str, flagged: List) -> None:
     prefix = f'Subj: {subj_id} '
     kept = []
     if os.path.exists(path):
-        with open(path) as f:
+        with open(path, encoding='utf-8') as f:
             kept = [ln for ln in f if not ln.startswith(prefix)]
     if flagged or kept:
-        with open(path, 'w') as logfile:
+        with open(path, 'w', encoding='utf-8') as logfile:
             logfile.writelines(kept)
             for trial_id, eye in flagged:
                 logfile.write(f'Subj: {subj_id} Trial {trial_id} Eye {eye}: SLICE and DIFF line '
@@ -2350,7 +2350,7 @@ def read_cal_timestamp(direct: str, subj_id: str, regfile_name_list: List[str],
         return None
     
     # Read ASCII file
-    with open(ascfile_dic[subj_id], 'r') as f:
+    with open(ascfile_dic[subj_id], 'r', encoding='utf-8', errors='replace') as f:
         _log.info(f"Read ASC: {f.name}")
         lines = f.readlines()
     

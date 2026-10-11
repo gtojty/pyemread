@@ -7,7 +7,8 @@ pyemread requires Python 3.9 or later. Install it from GitHub::
 
 The runtime dependencies (NumPy, pandas, Pillow and matplotlib) are declared
 in ``pyproject.toml`` and listed in ``requirements.txt``. pyemread is tested
-with pandas 1.5, 2.x and 3.x on Linux, macOS and Windows (see the continuous
+on Linux with Python 3.9 to 3.13 (latest compatible dependencies, and pandas 1.5
+and 2.2) and on macOS and Windows with Python 3.12 (see the continuous
 integration workflow in ``.github/workflows/tests.yml``).
 
 Rendering animations of eye movements (:func:`pyemread.gen.animate`) also

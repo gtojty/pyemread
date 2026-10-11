@@ -18,8 +18,7 @@ Modules (descriptive alias in brackets):
     Fixation-to-line assignment methods (``"slice"``, ``"diff"``,
     ``"nearest"``) and word assignment.
 ``ext_robust`` (``diagnostics``)
-    Trial-level diagnostics of line assignment, pre-scan detection and
-    parameter-sensitivity reports.
+    Trial-level diagnostics of line assignment and pre-scan detection.
 ``cal`` (``measures``)
     Word-level and sentence-level reading measures.
 

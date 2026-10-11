@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,8 @@ name = "pyemread"
 dynamic = ["version"]
 description = "Multi-line text reading eye-movement experiments: stimuli, fixation-to-line assignment and reading measures"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+license-files = ["LICENSE", "AUTHORS.md"]
 authors = [{name = "Tao Gong", email = "gtojty@gmail.com"}]
 requires-python = ">=3.9"
 dependencies = [
@@ -19,7 +20,6 @@ dependencies = [
 keywords = ["eye tracking", "reading", "return sweeps", "vertical drift", "fixation", "areas of interest"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering",

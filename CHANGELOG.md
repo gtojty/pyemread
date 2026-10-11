@@ -13,6 +13,9 @@ Fixes found in the review of version 2.2.0 (results in the accompanying article 
 - The trial-level check uses valid fixations only, is not repeated for trials whose method was chosen explicitly, and `log.txt` no longer accumulates duplicate entries.
 - `detect_events` names the parameters that require `px_per_deg`.
 - `ext_robust.sensitivity_report` was removed (it measured stability, not accuracy); `detect_prescan` and `mask_prescan_fixations` are now tested.
+- The CJK fonts SimSun and Batang are no longer distributed (their licenses do not permit it); `examples/LICENSE-DATA.md` explains where to find them (Windows) and free alternatives (Noto CJK). The CJK tests use these fonts if found and Noto Sans CJK otherwise; the Linux CI jobs install Noto CJK.
+- Old example animations (`.mp4`) made by an earlier version were removed; the tutorial renders an animation with `gen.animate`.
+- `cal_write_em` accepts `max_glance`. Packaging uses the SPDX license expression (setuptools 77 or later). Files are opened as UTF-8 on every platform.
 - The version is defined once (`pyemread.__version__`). Example data are licensed under CC BY 4.0 (`examples/LICENSE-DATA.md`); new example `examples/fixation_table/`.
 - Validation: the benchmark adapter now passes the true character width of Carr et al.'s passages (half a character of padding on each side of eyekit word boxes), so `slice` runs with the thresholds described in the article; it reproduces Carr et al.'s `slice` on every fixation.
 

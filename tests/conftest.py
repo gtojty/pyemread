@@ -25,3 +25,23 @@ def eyelink_dir(tmp_path):
     (tmp_path / SUBJECT).mkdir()
     shutil.copy(EXAMPLES / SUBJECT / f"{SUBJECT}.asc", tmp_path / SUBJECT)
     return tmp_path
+
+
+def cjk_font(name):
+    """Path of a CJK font that is not distributed with pyemread (e.g. 'simsun.ttc'
+    or 'batang.ttc', installed with Windows), or None if it cannot be found.
+    Set PYEMREAD_CJK_FONTS to a folder that contains the fonts to use another
+    location."""
+    import os
+    folders = [os.environ.get("PYEMREAD_CJK_FONTS", ""), r"C:\Windows\Fonts",
+               str(ROOT / "examples" / "textRasters")]
+    for folder in folders:
+        if folder and (Path(folder) / name).exists():
+            return str(Path(folder) / name)
+    # a free alternative (e.g. Debian/Ubuntu package fonts-noto-cjk)
+    for path in ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                 "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+                 "/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc"):
+        if Path(path).exists():
+            return path
+    return None

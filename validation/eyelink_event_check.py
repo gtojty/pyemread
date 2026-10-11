@@ -1,7 +1,7 @@
 """Check pyemread's sample-based event detector against the EyeLink parser.
 
 The ASC files distributed with pyemread contain both the raw binocular
-samples (250 Hz) and the fixations detected online by the EyeLink 1000
+samples (250 Hz) and the fixations detected online by the EyeLink
 parser (EFIX events). This script runs :func:`pyemread.ext_generic.detect_events`
 on the raw samples and compares its fixations with EyeLink's, for the
 three example participants, three passages and both eyes.
