@@ -31,7 +31,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install FFmpeg (Linux)
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-noto-cjk
       - name: Install pyemread in a clean environment
         shell: bash
         run: |

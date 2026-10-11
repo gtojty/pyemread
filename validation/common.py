@@ -37,7 +37,10 @@ def passage_to_region(passage) -> pd.DataFrame:
     rows, wid = [], 1
     for line_n in range(passage.n_rows):
         for w in passage.words(line_n=line_n):
-            rows.append({"WordID": wid, "Word": w.text, "length": len(w.text),
+            # eyekit word boxes extend half a character beyond each end of the
+            # word, so a box spans len(text) + 1 characters (as a pyemread
+            # region, which includes the preceding space, does)
+            rows.append({"WordID": wid, "Word": w.text, "length": len(w.text) + 1,
                          "line_no": line_n + 1, "x1_pos": float(w.x_tl),
                          "y1_pos": float(w.y_tl), "x2_pos": float(w.x_br),
                          "y2_pos": float(w.y_br)})

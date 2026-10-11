@@ -29,8 +29,10 @@ Word measures. A word's *first pass* starts with the first fixation on the
 word, provided that the eye has not yet moved past it, that is, no word
 further along in the text has been fixated before (one or two fixations
 further along that are followed by a return to the line being read, such
-as a brief glance at a later line, do not count). It ends when the eye
-leaves the word. A word without a first pass was skipped during first-pass
+as a brief glance at a later line, do not count; neither do one or two
+fixations on a later line at the start of a trial, e.g. at a central
+fixation target, that precede reading). It ends when the eye leaves the
+word. A word without a first pass was skipped during first-pass
 reading.
 
 ``fpurt``
@@ -49,8 +51,11 @@ reading.
     regression landed; the total number of characters if there was no
     regression.
 ``ffos``
-    Character position, within the word, of the first first-pass fixation
-    (0 = first character).
+    Character position, within the word's area of interest, of the first
+    first-pass fixation (0 = first position). The area of interest of a
+    word that follows a space includes that space, so a fixation on its
+    first letter has position 1; fixations in the extension at a line edge
+    count as position 0.
 ``ffixurt``
     First-fixation duration: duration of the first first-pass fixation (ms).
 ``spilover``
@@ -82,7 +87,9 @@ reading.
 ``tfcount``
     Total number of fixations on the word.
 
-Only fixations marked valid (``valid == "yes"``) are scored. Fixations
+Only fixations marked valid (``valid == "yes"``) are scored (see
+:func:`pyemread.ext.apply_fixation_validity`). Sentence-level first pass
+does not ignore glances. Fixations
 that were not assigned to any line (``line_no`` is ``NaN``) are ignored.
 Fixations assigned to a line but not to a word end a first pass, and they
 end a regression path if they lie beyond the word's right edge.
@@ -290,7 +297,7 @@ def compute_word_measures(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
             return np.nan
         j = id_to_idx[R[i]]
         width = mod_x2[j] - mod_x1[j]
-        within = np.ceil((X[i] - mod_x1[j]) / width * w_len[j]) - 1 if width > 0 else 0
+        within = max(np.ceil((X[i] - mod_x1[j]) / width * w_len[j]) - 1, 0) if width > 0 else 0
         return chars_before[j] + within
 
     # position of each fixation in reading order: (line, x)
@@ -301,6 +308,14 @@ def compute_word_measures(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
     cur_l, cur_x = -np.inf, -np.inf
     ahead = lambda i, l0, x0: (L[i] > l0) or (L[i] == l0 and X[i] > x0)
     i = 0
+    if ignore_glances and n > 1:
+        # A trial may begin with a glance at a later line (e.g. at a central
+        # fixation target) before reading starts on an earlier line; such
+        # initial fixations do not move the reading position either.
+        for k in range(1, min(max_glance, n - 1) + 1):
+            if np.all(L[:k] > L[k]):
+                i = k
+                break
     while i < n:
         reached_line[i], reached_x[i] = cur_l, cur_x
         if ignore_glances and np.isfinite(cur_l) and L[i] > cur_l:
@@ -343,7 +358,8 @@ def compute_word_measures(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
         out['fpcount'][j] = len(run)
         out['ffixurt'][j] = D[f0]
         width = b - a
-        out['ffos'][j] = (np.ceil((X[f0] - a) / width * w_len[j]) - 1) if width > 0 else 0
+        out['ffos'][j] = (max(np.ceil((X[f0] - a) / width * w_len[j]) - 1, 0)
+                          if width > 0 else 0)
         if end is not None:
             out['spilover'][j] = D[end]
         regress = end is not None and ((L[end] < wl) or (L[end] == wl and X[end] < a))
@@ -499,7 +515,8 @@ def _iter_trials(fix_df: pd.DataFrame):
 def cal_write_em(direct: str, subj_id: str, regfile_name_list: List[str],
                  add_char_sp: int = 1, fix_df: Optional[pd.DataFrame] = None,
                  sac_df: Optional[pd.DataFrame] = None, write: bool = True,
-                 strict_first_pass: bool = True, ignore_glances: bool = True) -> pd.DataFrame:
+                 strict_first_pass: bool = True, ignore_glances: bool = True,
+                 max_glance: int = 2) -> pd.DataFrame:
     """
     Calculate (and write) word-level eye-movement measures for a participant.
 
@@ -525,6 +542,8 @@ def cal_write_em(direct: str, subj_id: str, regfile_name_list: List[str],
         ``<subj_id>_EM_<trial_type>_<eye>.csv`` (default True).
     strict_first_pass, ignore_glances : bool
         See :func:`compute_word_measures`.
+    max_glance : int
+        Longest excursion, in fixations, treated as a glance (default 2).
 
     Returns
     -------
@@ -561,7 +580,7 @@ def cal_write_em(direct: str, subj_id: str, regfile_name_list: List[str],
             se = sac_df[(sac_df['trial_id'] == trial_id) & (sac_df['eye'] == eye)]
         _log.info(f'Cal EM measures: Subj {subj_id}, trial {trial_id}, eye {eye}')
         em = compute_word_measures(fe, reg_df, se, add_char_sp, subj_id, strict_first_pass,
-                                   ignore_glances)
+                                   ignore_glances, max_glance)
         if write:
             os.makedirs(os.path.join(direct, subj_id), exist_ok=True)
             em.to_csv(os.path.join(direct, subj_id, f'{subj_id}_EM_{trial_type}_{eye}.csv'),

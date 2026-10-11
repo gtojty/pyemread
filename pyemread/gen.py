@@ -543,6 +543,8 @@ def praster(direct: str, fontpath: str, st_pos: str, lang_type: str,
     """
     if not isinstance(text, (list, tuple)):
         raise ValueError("text argument must be a list of text string(s), not a bare string!")
+    # a byte-order mark (e.g. from a text file saved as 'UTF-8 with BOM') is not text
+    text = [t.replace('\ufeff', '') for t in text]
     os.makedirs(direct, exist_ok=True)
     
     # Adjust font height if width is specified
@@ -709,9 +711,19 @@ def praster(direct: str, fontpath: str, st_pos: str, lang_type: str,
     elif lang_type in KJ_LANG_LIST:
         curline = 1
         for line in text:
-            words = line.split(' ')
-            words = [w for w in words if w]
-            words = [' ' + w if i > 0 else w for i, w in enumerate(words)]
+            if ' ' not in line.strip():
+                # no inter-word spaces: each character is its own AOI, with
+                # punctuation attached to the preceding character
+                words = []
+                for ch in line.strip():
+                    if words and (ch in PUNC_LIST or ch in '」』）〉》・…!?.,:;)'):
+                        words[-1] += ch
+                    else:
+                        words.append(ch)
+            else:
+                words = line.split(' ')
+                words = [w for w in words if w]
+                words = [' ' + w if i > 0 else w for i, w in enumerate(words)]
             
             # Remove space after punctuation
             for ind_w in range(1, len(words)):

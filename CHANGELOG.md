@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.2.1 (2026)
+
+Fixes found in the review of version 2.2.0 (results in the accompanying article are from this version).
+
+- `slice`: when only some lines of a text were read, empty proto-lines could push the fixations onto the wrong lines; empty outer proto-lines are now discarded, and the remaining ones are placed by their vertical position.
+- `DIFF` in `ext.classify_fixations` no longer raises `IndexError` on a trial without a detected line change (e.g. a single line read); such a trial is assigned to the first line.
+- In binocular EyeLink recordings, the last fixation of each eye (not only of the eye recorded last) is marked invalid.
+- The same validity rules (merging of short fixations, minimum duration, invalid last fixation) are applied to fixations from every source: `ext.apply_fixation_validity`, applied by `ext_generic.process_fixations` (`apply_validity=True`). `read_fixations` takes the duration from the file when one is given and accepts `sampfreq`; `bids_fixations` records the sampling rate. A fixation table exported from an EyeLink file now gives the same word-level measures as the file itself.
+- First pass: one or two fixations on a later line at the start of a trial (e.g. at a central fixation target) no longer remove the first-pass measures of the words read afterwards. `ffos` and character positions are never negative.
+- Japanese and Korean text without spaces: each character (with following punctuation) is an area of interest, as documented. `praster` removes byte-order marks.
+- The trial-level check uses valid fixations only, is not repeated for trials whose method was chosen explicitly, and `log.txt` no longer accumulates duplicate entries.
+- `detect_events` names the parameters that require `px_per_deg`.
+- `ext_robust.sensitivity_report` was removed (it measured stability, not accuracy); `detect_prescan` and `mask_prescan_fixations` are now tested.
+- The CJK fonts SimSun and Batang are no longer distributed (their licenses do not permit it); `examples/LICENSE-DATA.md` explains where to find them (Windows) and free alternatives (Noto CJK). The CJK tests use these fonts if found and Noto Sans CJK otherwise; the Linux CI jobs install Noto CJK.
+- Old example animations (`.mp4`) made by an earlier version were removed; the tutorial renders an animation with `gen.animate`.
+- `cal_write_em` accepts `max_glance`. Packaging uses the SPDX license expression (setuptools 77 or later). Files are opened as UTF-8 on every platform.
+- The version is defined once (`pyemread.__version__`). Example data are licensed under CC BY 4.0 (`examples/LICENSE-DATA.md`); new example `examples/fixation_table/`.
+- Validation: the benchmark adapter now passes the true character width of Carr et al.'s passages (half a character of padding on each side of eyekit word boxes), so `slice` runs with the thresholds described in the article; it reproduces Carr et al.'s `slice` on every fixation.
+
 ## 2.2.0 (2026)
 
 Installation and maintenance

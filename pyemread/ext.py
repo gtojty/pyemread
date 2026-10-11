@@ -982,7 +982,7 @@ def _rec_fix(exp_type: str, trial_id: int, blinklines: List, fixlines: List,
     Build the fixation table of one trial from its EFIX lines.
 
     Fixations are grouped by eye (left eye first). If ``rec_last_fix`` is
-    False, the trial's final fixation is marked invalid, because it is
+    False, the final fixation of each eye is marked invalid, because it is
     usually cut short by the end of the trial. If ``lump_fix`` is True,
     fixations no longer than ``ln`` ms are merged with a neighbour within
     ``zn`` pixels, and fixations still shorter than ``mn`` ms are marked
@@ -995,7 +995,6 @@ def _rec_fix(exp_type: str, trial_id: int, blinklines: List, fixlines: List,
               'script': script, 'sessdate': sessdate, 'srcfile': srcfile,
               'trialstart': trialstart, 'trialend': trialend, 'tdur': tdur,
               'recstart': recstart, 'recend': recend, 'blinks': int(blink_number)}
-    last_eye = fixlines[-1][1] if fixlines else None
     eyes = [eyerec] if eyerec in ('L', 'R') else ['L', 'R']
     parts = []
     for eye in eyes:
@@ -1009,19 +1008,85 @@ def _rec_fix(exp_type: str, trial_id: int, blinklines: List, fixlines: List,
             continue
         df = pd.DataFrame(rows, columns=FIX_COLUMNS)
         n = len(df)
-        holds_last = (eye == last_eye)
-        if not rec_last_fix and holds_last:
-            df.loc[n - 1, 'valid'] = 'no'
-        if lump_fix:
-            short_index = [i for i in range(n)
-                           if df.loc[i, 'duration'] <= ln and df.loc[i, 'valid'] == 'yes']
-            endindex = n - 2 if (not rec_last_fix and holds_last) else n - 1
-            df = _lump_fix(df, endindex, short_index, addtime, ln, zn)
-            df.loc[df['duration'] < mn, 'valid'] = 'no'
+        df = _apply_validity(df, addtime, rec_last_fix, lump_fix, ln, zn, mn)
         parts.append(df)
     if not parts:
         return pd.DataFrame(columns=FIX_COLUMNS)
     return pd.concat(parts, ignore_index=True)
+
+
+def _apply_validity(df: pd.DataFrame, addtime: float, rec_last_fix: bool = False,
+                    lump_fix: bool = True, ln: int = 50, zn: int = 50,
+                    mn: int = 50) -> pd.DataFrame:
+    """Validity rules for the fixations of one trial and one eye.
+
+    Shared by the EyeLink route (:func:`read_srr_asc`) and the generic route
+    (:func:`apply_fixation_validity`). If ``rec_last_fix`` is False, the last
+    fixation is marked invalid. If ``lump_fix`` is True, fixations no longer
+    than ``ln`` ms are merged with a neighbour within ``zn`` pixels, and
+    fixations still shorter than ``mn`` ms are marked invalid.
+    """
+    df = df.reset_index(drop=True).copy()
+    n = len(df)
+    if n == 0:
+        return df
+    if not rec_last_fix:
+        df.loc[n - 1, 'valid'] = 'no'
+    if lump_fix:
+        short_index = [i for i in range(n)
+                       if df.loc[i, 'duration'] <= ln and df.loc[i, 'valid'] == 'yes']
+        endindex = n - 2 if not rec_last_fix else n - 1
+        df = _lump_fix(df, endindex, short_index, addtime, ln, zn)
+        df.loc[df['duration'] < mn, 'valid'] = 'no'
+    return df
+
+
+def apply_fixation_validity(fix_df: pd.DataFrame, rec_last_fix: bool = False,
+                            lump_fix: bool = True, ln: int = 50, zn: int = 50,
+                            mn: int = 50, sampfreq: Optional[float] = None) -> pd.DataFrame:
+    """Apply the EyeLink-route validity rules to a fixation table from any source.
+
+    The rules are those of :func:`read_srr_asc`: per trial and eye, the last
+    fixation is marked invalid (unless ``rec_last_fix``), fixations no longer
+    than ``ln`` ms are merged with a neighbour within ``zn`` pixels, and
+    fixations still shorter than ``mn`` ms are marked invalid. Applying
+    them makes measures computed from other sources comparable with those
+    computed from EyeLink ASC files.
+
+    Parameters
+    ----------
+    fix_df : pandas.DataFrame
+        Fixations in the pyemread schema, in temporal order within trials.
+    rec_last_fix, lump_fix : bool
+        See above (defaults False and True, as for EyeLink data).
+    ln, zn, mn : int
+        Duration (ms) and distance (px) limits for merging, and the minimum
+        valid duration (ms); defaults 50, 50 and 50.
+    sampfreq : float, optional
+        Sampling rate (Hz); taken from a ``sampfreq`` column if absent.
+        Merged fixations are extended by one sample interval.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The fixation table with ``valid`` updated (``'yes'``/``'no'``).
+    """
+    parts = []
+    df = fix_df.copy()
+    if 'valid' not in df:
+        df['valid'] = 'yes'
+    added = [c for c in ('pup_size', 'line_no', 'region_no') if c not in df]
+    for c in added:
+        df[c] = np.nan
+    for (_, _), g in df.groupby(['trial_id', 'eye'], sort=False):
+        sf = sampfreq
+        if sf is None and 'sampfreq' in g and pd.notna(g['sampfreq']).any():
+            sf = float(pd.to_numeric(g['sampfreq'], errors='coerce').dropna().iloc[0])
+        addtime = 1000.0 / sf if sf else 0.0
+        parts.append(_apply_validity(g, addtime, rec_last_fix, lump_fix, ln, zn, mn))
+    if not parts:
+        return df.drop(columns=added)
+    return pd.concat(parts, ignore_index=True).drop(columns=added)
 
 
 def _merge_sac_lines(startline: int, endline: int, df: pd.DataFrame) -> List[Tuple]:
@@ -1854,10 +1919,21 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
         ``(trial_id, eye)`` pairs whose line assignment should be checked
         visually (see the Notes).
 
+    Raises
+    ------
+    KeyError
+        If a trial's stimulus (``trial_type``) is not in ``regions``.
+    ValueError
+        If ``classify_method`` is not one of :data:`LINE_METHODS`, if
+        ``'SAC'`` is chosen without saccades, or if ``'PROVIDED'`` is chosen
+        without line numbers.
+
     Notes
     -----
     With ``check=True``, a trial (eye) is flagged when the ``'SLICE'`` and
-    ``'DIFF'`` assignments disagree on more than 10% of its fixations (see
+    ``'DIFF'`` assignments disagree on more than 10% of its valid fixations
+    (trials whose method is chosen explicitly in ``classify_method`` are not
+    checked again) (see
     :func:`pyemread.lines.line_assignment_report`). In the validation
     reported with the package, every trial on which either method assigned
     fewer than 90% of fixations correctly was flagged. Flagged trials are
@@ -1897,8 +1973,15 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
                     crl_s = pd.DataFrame(columns=CRL_SAC_COLUMNS)
                 if method == 'SAC' and len(crl_s) == 0:
                     raise ValueError("classify_method='SAC' requires saccades.")
-                crl_f, _ = _get_crl_fix(reg_df, crl_s, fe, method, diff_ratio,
-                                        frontrange_ratio, y_range)
+                try:
+                    crl_f, _ = _get_crl_fix(reg_df, crl_s, fe, method, diff_ratio,
+                                            frontrange_ratio, y_range)
+                except IndexError:
+                    # no line change was detected (e.g. a single line was read)
+                    fe = _lines.assign_lines_diff(fe, reg_df, diff_ratio=diff_ratio,
+                                                  frontrange_ratio=frontrange_ratio,
+                                                  y_range=y_range)
+                    crl_f = _crl_fix_from_lines(fe)
             else:
                 if method == 'PROVIDED':
                     if 'line_no' not in fe or fe['line_no'].notna().sum() == 0:
@@ -1909,8 +1992,10 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
                 se = _sac_lines_from_fix(se, fe)
                 crl_s = _crl_sac_from_lines(se)
             question, agree = False, np.nan
-            if check and len(fe) > 2:
-                rep = _lines.line_assignment_report(fe, reg_df)
+            chosen = (trial_id, eye) in method_map or trial_id in method_map
+            fv = fe[fe['valid'].astype(str).str.lower() == 'yes'] if 'valid' in fe else fe
+            if check and not chosen and len(fv) > 2:
+                rep = _lines.line_assignment_report(fv, reg_df)
                 question, agree = rep['flag'], rep['agree_slice_diff']
             fe = _lines.assign_regions(fe, reg_df, add_char_sp)
             if question:
@@ -1926,8 +2011,15 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
 
 
 def _log_flags(direct: str, subj_id: str, flagged: List) -> None:
-    if flagged:
-        with open(os.path.join(direct, 'log.txt'), 'a+') as logfile:
+    path = os.path.join(direct, 'log.txt')
+    prefix = f'Subj: {subj_id} '
+    kept = []
+    if os.path.exists(path):
+        with open(path, encoding='utf-8') as f:
+            kept = [ln for ln in f if not ln.startswith(prefix)]
+    if flagged or kept:
+        with open(path, 'w', encoding='utf-8') as logfile:
+            logfile.writelines(kept)
             for trial_id, eye in flagged:
                 logfile.write(f'Subj: {subj_id} Trial {trial_id} Eye {eye}: SLICE and DIFF line '
                               f'assignments disagree; inspect this trial\n')
@@ -2130,6 +2222,16 @@ def process_subject(direct: str, subj_id: str, regfile_name_list: List[str],
     Returns
     -------
     sac_df, crl_sac, fix_df, crl_fix : pandas.DataFrame
+
+    Raises
+    ------
+    FileNotFoundError
+        If the ASC file or a region file does not exist (the message names
+        the expected path).
+    KeyError
+        If a trial's stimulus has no region file.
+    ValueError
+        If ``classify_method`` is not one of :data:`LINE_METHODS`.
     """
     sac_df, crl_sac, fix_df, crl_fix = read_cal_srr_asc(
         direct, subj_id, regfile_name_list, exp_type=exp_type,
@@ -2248,7 +2350,7 @@ def read_cal_timestamp(direct: str, subj_id: str, regfile_name_list: List[str],
         return None
     
     # Read ASCII file
-    with open(ascfile_dic[subj_id], 'r') as f:
+    with open(ascfile_dic[subj_id], 'r', encoding='utf-8', errors='replace') as f:
         _log.info(f"Read ASC: {f.name}")
         lines = f.readlines()
     

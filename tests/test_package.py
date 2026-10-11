@@ -15,9 +15,10 @@ def test_modules_and_aliases():
     assert m is cal
 
 
-def test_version_is_consistent():
+def test_version_is_single_sourced():
     toml = (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text()
-    assert re.search(r'^version = "([^"]+)"', toml, re.M).group(1) == pyemread.__version__
+    assert 'dynamic = ["version"]' in toml and 'attr = "pyemread.__version__"' in toml
+    assert re.fullmatch(r"\d+\.\d+\.\d+", pyemread.__version__)
 
 
 def test_legacy_names_are_aliases():

@@ -18,8 +18,7 @@ Modules (descriptive alias in brackets):
     Fixation-to-line assignment methods (``"slice"``, ``"diff"``,
     ``"nearest"``) and word assignment.
 ``ext_robust`` (``diagnostics``)
-    Trial-level diagnostics of line assignment, pre-scan detection and
-    parameter-sensitivity reports.
+    Trial-level diagnostics of line assignment and pre-scan detection.
 ``cal`` (``measures``)
     Word-level and sentence-level reading measures.
 
@@ -29,7 +28,7 @@ module as ``from pyemread import cal``.
 
 import sys as _sys
 
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 __author__ = "Tao Gong"
 __email__ = "gtojty@gmail.com"
 __license__ = "MIT"
