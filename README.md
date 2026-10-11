@@ -5,7 +5,7 @@
 [![tests](https://github.com/gtojty/pyemread/actions/workflows/tests.yml/badge.svg)](https://github.com/gtojty/pyemread/actions/workflows/tests.yml)
 [![docs](https://github.com/gtojty/pyemread/actions/workflows/docs.yml/badge.svg)](https://gtojty.github.io/pyemread/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19622178.svg)](https://doi.org/10.5281/zenodo.19622178)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23302978.svg)](https://doi.org/10.5281/zenodo.23302978)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gtojty/pyemread/blob/master/examples/tutorial.ipynb)
 
 pyemread takes a reading study with multi-line passages from the text to an analysis-ready table of word-level measures:
@@ -78,7 +78,7 @@ Names from earlier versions (e.g. `ext.cal_crlSacFix`, `cal.cal_write_EM`, `gen.
 
 ## Citation
 
-Please cite the accompanying article (Gong, under review, *Behavior Research Methods*) and the software archive: Gong, T. pyemread (Version 2.2.0) [Computer software]. https://doi.org/10.5281/zenodo.19622178. See [CITATION.cff](CITATION.cff) and [AUTHORS.md](AUTHORS.md).
+Please cite the accompanying article (Gong, under review, *Behavior Research Methods*) and the software archive: Gong, T. (2026). pyemread (Version 2.2.0) [Computer software]. https://doi.org/10.5281/zenodo.23302978. See [CITATION.cff](CITATION.cff) and [AUTHORS.md](AUTHORS.md).
 
 ## License
 
