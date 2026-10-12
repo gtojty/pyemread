@@ -3,8 +3,8 @@
 The data set contains 48 trials (24 adults, 24 children) of passage
 reading in Italian, recorded with an EyeLink 1000 Plus. Each trial was
 corrected by hand (``gold.json``); fixations removed by the correctors are
-marked ``discarded``. Carr et al. also published the output of ten
-correction algorithms and the ``attach`` baseline on the same trials.
+marked ``discarded``. Carr et al. also published the output of the ten
+algorithms they evaluated (including the ``attach`` baseline) on the same trials.
 
 This script runs pyemread's line-assignment methods (``diff``, the original
 pyemread heuristic, and ``slice``, pyemread's adaptation of Carr et al.'s

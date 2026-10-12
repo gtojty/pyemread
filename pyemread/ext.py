@@ -984,7 +984,7 @@ def _rec_fix(exp_type: str, trial_id: int, blinklines: List, fixlines: List,
     Fixations are grouped by eye (left eye first). If ``rec_last_fix`` is
     False, the final fixation of each eye is marked invalid, because it is
     usually cut short by the end of the trial. If ``lump_fix`` is True,
-    fixations no longer than ``ln`` ms are merged with a neighbour within
+    fixations no longer than ``ln`` ms are merged with a neighbor within
     ``zn`` pixels, and fixations still shorter than ``mn`` ms are marked
     invalid.
     """
@@ -1023,7 +1023,7 @@ def _apply_validity(df: pd.DataFrame, addtime: float, rec_last_fix: bool = False
     Shared by the EyeLink route (:func:`read_srr_asc`) and the generic route
     (:func:`apply_fixation_validity`). If ``rec_last_fix`` is False, the last
     fixation is marked invalid. If ``lump_fix`` is True, fixations no longer
-    than ``ln`` ms are merged with a neighbour within ``zn`` pixels, and
+    than ``ln`` ms are merged with a neighbor within ``zn`` pixels, and
     fixations still shorter than ``mn`` ms are marked invalid.
     """
     df = df.reset_index(drop=True).copy()
@@ -1048,7 +1048,7 @@ def apply_fixation_validity(fix_df: pd.DataFrame, rec_last_fix: bool = False,
 
     The rules are those of :func:`read_srr_asc`: per trial and eye, the last
     fixation is marked invalid (unless ``rec_last_fix``), fixations no longer
-    than ``ln`` ms are merged with a neighbour within ``zn`` pixels, and
+    than ``ln`` ms are merged with a neighbor within ``zn`` pixels, and
     fixations still shorter than ``mn`` ms are marked invalid. Applying
     them makes measures computed from other sources comparable with those
     computed from EyeLink ASC files.
@@ -1898,7 +1898,7 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
         (:func:`pyemread.lines.assign_lines_slice`). ``'DIFF'``: the original
         pyemread heuristic based on horizontal displacements between
         fixations. ``'SAC'``: the original heuristic applied to saccades.
-        ``'NEAREST'``: nearest line centre. ``'PROVIDED'``: keep the
+        ``'NEAREST'``: nearest line center. ``'PROVIDED'``: keep the
         ``line_no`` values already in ``fix_df`` (e.g. after manual
         correction in another program). See :mod:`pyemread.lines`.
     diff_ratio, frontrange_ratio, y_range : float

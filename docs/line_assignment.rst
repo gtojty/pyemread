@@ -12,7 +12,7 @@ be computed. :mod:`pyemread.lines` provides three methods:
     The original pyemread heuristic (Gong & Shuai, 2023), which counts line
     changes in temporal order from horizontal displacements.
 ``"nearest"``
-    Nearest line centre (no drift correction).
+    Nearest line center (no drift correction).
 
 Line numbers corrected in another program can be used with
 ``classify_method="PROVIDED"``, and the method can be chosen per trial with

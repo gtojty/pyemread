@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.2 (2026)
+
+- Example data: session dates and file-server paths were removed from the headers of the ASC files; the data are released by the author under CC BY 4.0 (`examples/LICENSE-DATA.md`; the BIDS example now declares `CC-BY-4.0`).
+- Documentation, comments and spelling (US English) were revised; unused imports were removed from `gen`. No change to any computation.
+
 ## 2.2.1 (2026)
 
 Fixes found in the review of version 2.2.0 (results in the accompanying article are from this version).
@@ -13,7 +18,7 @@ Fixes found in the review of version 2.2.0 (results in the accompanying article 
 - The trial-level check uses valid fixations only, is not repeated for trials whose method was chosen explicitly, and `log.txt` no longer accumulates duplicate entries.
 - `detect_events` names the parameters that require `px_per_deg`.
 - `ext_robust.sensitivity_report` was removed (it measured stability, not accuracy); `detect_prescan` and `mask_prescan_fixations` are now tested.
-- The CJK fonts SimSun and Batang are no longer distributed (their licenses do not permit it); `examples/LICENSE-DATA.md` explains where to find them (Windows) and free alternatives (Noto CJK). The CJK tests use these fonts if found and Noto Sans CJK otherwise; the Linux CI jobs install Noto CJK.
+- The CJK fonts SimSun and Batang are no longer distributed; `examples/LICENSE-DATA.md` explains where to find them (Windows) and free alternatives (Noto CJK). The CJK tests use these fonts if found and Noto Sans CJK otherwise; the Linux CI jobs install Noto CJK.
 - Old example animations (`.mp4`) made by an earlier version were removed; the tutorial renders an animation with `gen.animate`.
 - `cal_write_em` accepts `max_glance`. Packaging uses the SPDX license expression (setuptools 77 or later). Files are opened as UTF-8 on every platform.
 - The version is defined once (`pyemread.__version__`). Example data are licensed under CC BY 4.0 (`examples/LICENSE-DATA.md`); new example `examples/fixation_table/`.
@@ -35,7 +40,7 @@ Line assignment (`pyemread.lines`, `ext.classify_fixations`)
 Reading measures (`pyemread.cal`)
 - `cal_write_em` raises an error if the fixations have not been assigned to lines, and accepts in-memory tables (`fix_df=`, `sac_df=`).
 - Fixed a `KeyError` when a trial ended on the first fixation on a word.
-- First pass now follows the standard definition: a word fixated only after the eye had moved past it has no first pass (`strict_first_pass=False` restores the earlier behaviour). Brief glances at later lines are ignored.
+- First pass now follows the standard definition: a word fixated only after the eye had moved past it has no first pass (`strict_first_pass=False` restores the earlier behavior). Brief glances at later lines are ignored.
 - `rpcount` now includes the first-pass fixations, consistent with `rpurt`; `fpregchr`, `rpregchr` and `tffixos` count characters from the beginning of the text (off-by-one errors fixed); `tffixurt` was written as `ttfixurt` and is fixed.
 - New word measures `tfurt` and `tfcount` (total fixation time and count) and sentence-level measures (`cal_write_sm`).
 

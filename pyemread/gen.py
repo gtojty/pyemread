@@ -57,11 +57,6 @@ _log = logging.getLogger(__name__)
 # FFmpeg is needed only for animations; it is looked up when first used.
 FFMPEG_AVAILABLE = shutil.which('ffmpeg') is not None
 
-# Import wave and struct for synthetic audio generation
-import wave
-import struct
-import math
-
 
 # Global variables for language types
 ENG_LANG_LIST = ['English', 'French', 'German', 'Dutch', 'Spanish', 'Italian', 'Greek',
@@ -918,7 +913,7 @@ def gen_bitmap_regfile(direct: str, font_name: str, st_pos: str, lang_type: str,
 
 def upd_reg(direct: str, regfile_namelist: List[str], addspace: int) -> None:
     """
-    Update old-style region files to new format.
+    Convert region files written by pyemread < 2.0 to the current format.
     
     Args:
         direct: Directory containing region files
@@ -1425,7 +1420,7 @@ def draw_blinks(direct: str, trial_num: int) -> None:
         plt.close()
 
 
-# Animation functions using matplotlib/FFmpeg instead of turtle
+# Line-assignment plots and animations
 def draw_line_assignment(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
                          methods: Tuple[str, ...] = ('slice', 'diff'),
                          out_file: Optional[str] = None, bitmap_file: Optional[str] = None,
@@ -1434,7 +1429,7 @@ def draw_line_assignment(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
     Plot the line assignments of several methods side by side for one trial.
 
     Each panel shows the word boxes of the region file (or the stimulus
-    bitmap), the scanpath, and the fixations coloured by the line to which
+    bitmap), the scanpath, and the fixations colored by the line to which
     the method assigned them. This is the recommended way to inspect trials
     flagged by :func:`pyemread.ext_robust.trial_report`.
 
@@ -1870,13 +1865,13 @@ def change_png2gif(direct: str) -> None:
     """
     Convert PNG bitmaps to GIF format (deprecated, kept for compatibility).
     
-    Note: The new animation system uses PNG directly with FFmpeg, so this
-    function is no longer required but kept for backward compatibility.
+    Deprecated: animations are rendered from PNG bitmaps, so GIF conversion is
+    not needed; the function is kept for compatibility.
     
     Args:
         direct: Directory containing PNG bitmaps
     """
-    warnings.warn("change_png2gif is deprecated. The new animation system uses PNG directly.",
+    warnings.warn("change_png2gif is deprecated: animations are rendered from PNG bitmaps.",
                   DeprecationWarning)
     
     png_list = [f for f in os.listdir(direct) if fnmatch.fnmatch(f, '*.png')]

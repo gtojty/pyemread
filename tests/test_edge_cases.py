@@ -69,7 +69,7 @@ def test_generic_route_uses_the_same_validity_rules():
                         "end_time": [200, 250, 580, 800], "duration": [200, 40, 320, 200],
                         "valid": "yes", "sampfreq": 250})
     out = ext.apply_fixation_validity(fix)
-    assert len(out) == 3                      # the 40-ms fixation is merged with its neighbour
+    assert len(out) == 3                      # the 40-ms fixation is merged with its neighbor
     assert out["valid"].tolist() == ["yes", "yes", "no"]   # the last fixation is invalid
 
 

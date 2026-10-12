@@ -35,7 +35,7 @@ Three assignment methods are provided.
     missed.
 
 ``"nearest"``
-    Assigns each fixation to the line whose vertical centre is nearest (the
+    Assigns each fixation to the line whose vertical center is nearest (the
     "attach" baseline of Carr et al., 2022). It is provided as a reference
     and for diagnostics.
 
@@ -46,7 +46,7 @@ inspected visually.
 
 All methods return the input DataFrame with ``line_no`` filled in (1-based
 line index as numbered in the region file, ``NaN`` for fixations that were
-not assigned). The geometry of the text (line centres, line spacing, line
+not assigned). The geometry of the text (line centers, line spacing, line
 extents) is read from the region file produced by
 :func:`pyemread.gen.praster`, or from any table with the columns
 ``line_no``, ``x1_pos``, ``x2_pos``, ``y1_pos``, ``y2_pos`` (one row per
@@ -95,17 +95,17 @@ class TextGeometry:
     line_ids : numpy.ndarray
         Line numbers as they appear in the region file (usually 1..K).
     centers : numpy.ndarray
-        Vertical centre of each line in pixels (screen coordinates,
-        y increasing downwards).
+        Vertical center of each line in pixels (screen coordinates,
+        y increasing downward).
     spacing : float
-        Median distance between adjacent line centres in pixels.
+        Median distance between adjacent line centers in pixels.
     x_first : numpy.ndarray
-        Horizontal centre of the first word of each line.
+        Horizontal center of the first word of each line.
     x_last : numpy.ndarray
-        Horizontal centre of the last word of each line.
+        Horizontal center of the last word of each line.
     width : float
-        Median distance between the centre of the last word of a line and
-        the centre of the first word of the next line. This is the expected
+        Median distance between the center of the last word of a line and
+        the center of the first word of the next line. This is the expected
         horizontal amplitude of a return sweep. It is the quantity used by
         the ``"diff"`` method.
     """
@@ -119,7 +119,7 @@ class TextGeometry:
 
 
 def text_geometry(reg_df: pd.DataFrame) -> TextGeometry:
-    """Derive line centres, spacing and extents from a region table.
+    """Derive line centers, spacing and extents from a region table.
 
     Parameters
     ----------
@@ -220,7 +220,7 @@ def _slice(xy: np.ndarray, line_y: np.ndarray, x_thresh: float, y_thresh: float,
             if dist < best:
                 best, best_i = dist, pl_i
         proto_lines[best_i].extend(run)
-    # pyemread change: empty proto-lines beyond the outermost lines that
+    # Departure from Carr et al. (2022): empty proto-lines beyond the outermost lines that
     # received fixations are discarded, so that a trial in which only some
     # lines were read is not mapped to the wrong lines purely by rank.
     filled = [k for k in proto_lines if proto_lines[k]]
@@ -361,7 +361,7 @@ def assign_lines_diff(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
 
 def assign_lines_nearest(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
                          x_col: str = "x_pos", y_col: str = "y_pos") -> pd.DataFrame:
-    """Assign each fixation to the line with the nearest vertical centre."""
+    """Assign each fixation to the line with the nearest vertical center."""
     geo = text_geometry(reg_df)
     out = fix_df.copy()
     y = out[y_col].to_numpy(float)

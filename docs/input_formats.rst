@@ -10,7 +10,7 @@ origin at the top left), and ``valid`` (``"yes"``/``"no"``).
 
 The same validity rules are applied to every route
 (:func:`pyemread.ext.apply_fixation_validity`): per trial and eye, fixations
-of 50 ms or less are merged with a neighbour within 50 pixels, fixations still
+of 50 ms or less are merged with a neighbor within 50 pixels, fixations still
 shorter than 50 ms are invalid, and the last fixation is invalid because it
 is usually cut short by the end of the trial. For the generic routes, this
 step is part of :func:`pyemread.ext_generic.process_fixations` and can be

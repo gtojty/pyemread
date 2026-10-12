@@ -125,7 +125,7 @@ def read_samples(path: Union[str, pd.DataFrame], time_col: str = 'time', x_col: 
     time_col, x_col, y_col : str
         Columns holding the time stamp and the horizontal and vertical gaze
         position in screen pixels (origin at the top-left corner of the
-        screen, y increasing downwards).
+        screen, y increasing downward).
     eye_col : str, optional
         Column with the eye ('L'/'R' or 'left'/'right'). If omitted, all
         samples are labelled ``eye``.
@@ -549,7 +549,7 @@ def _sg_derivative(v: np.ndarray, half: int, order: int = 2) -> np.ndarray:
         return np.gradient(v)
     k = np.arange(-half, half + 1, dtype=float)
     A = np.vander(k, order + 1, increasing=True)
-    coef = np.linalg.pinv(A)[1]                    # derivative at the window centre
+    coef = np.linalg.pinv(A)[1]                    # derivative at the window center
     pad = np.pad(v, half, mode='edge')
     return np.convolve(pad, coef[::-1], mode='valid')
 
@@ -628,7 +628,7 @@ def detect_events(samples: pd.DataFrame, method: str = 'IVT',
     velocity_unit : {'deg/s', 'px/s'}
         Unit of ``velocity_threshold``. ``'deg/s'`` requires ``px_per_deg``.
     px_per_deg : float, optional
-        Pixels per degree of visual angle at the screen centre. Required
+        Pixels per degree of visual angle at the screen center. Required
         whenever a threshold is given in degrees.
     dispersion_threshold : float
         I-DT dispersion threshold, (max x - min x) + (max y - min y)
@@ -968,7 +968,7 @@ def pupil_core_surface_to_raw(path: str, screen_w: int, screen_h: int,
 
     Reads ``gaze_positions_on_surface_<name>.csv`` exported by Pupil Player's
     Surface Tracker, where the surface is the screen showing the text.
-    Surface coordinates are normalised with the origin at the bottom left;
+    Surface coordinates are normalized with the origin at the bottom left;
     they are converted to screen pixels with the origin at the top left.
     Samples that are off the surface or below ``min_confidence`` are set to
     missing.
@@ -1023,7 +1023,7 @@ def neon_surface_to_raw(path: str, screen_w: int, screen_h: int,
     Parameters
     ----------
     origin : {'top-left', 'bottom-left'}
-        Origin of the normalised surface coordinates in your export; check
+        Origin of the normalized surface coordinates in your export; check
         the documentation of the Pupil Cloud version you used.
     """
     df = _sniff_table(path, sep=',')

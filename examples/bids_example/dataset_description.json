@@ -2,7 +2,7 @@
   "Name": "pyemread example: oral reading of three English passages (right eye)",
   "BIDSVersion": "1.11.0",
   "DatasetType": "raw",
-  "License": "MIT",
+  "License": "CC-BY-4.0",
   "HowToAcknowledge": "Gong, T., & Shuai, L. (2023). Frontiers in Psychology, 13, 1006662.",
   "GeneratedBy": [
     {

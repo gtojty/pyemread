@@ -99,7 +99,7 @@ def fig1_architecture():
 
 
 # ---------------------------------------------------------------------------
-def fig2_stimulus(tmp):
+def fig3_stimulus(tmp):
     from matplotlib import font_manager
     font = font_manager.findfont("DejaVu Sans Mono")
     text = [ln.strip() for ln in open(EX / "textRasters" / "story01.txt", encoding="utf-8")
@@ -148,7 +148,7 @@ def process_examples(tmp):
     return data
 
 
-def fig3_inspection(data):
+def fig4_inspection(data):
     regions = ext.load_regions(str(data), REGIONS)
     fig, axes = plt.subplots(2, 2, figsize=(7.2, 6.6))
     cmap = plt.get_cmap("tab10")
@@ -180,14 +180,14 @@ def fig3_inspection(data):
             ax.set_xlabel("x (pixels)", fontsize=7); ax.set_ylabel("y (pixels)", fontsize=7)
             ax.set_title(f"Participant {s}, trial {tr} ({eye} eye): {m}", fontsize=8)
             label(ax, "(" + "abcd"[2 * row + c] + ")")
-        print(f"Fig 3 row {row}: agreement slice/diff = {rep['agree_slice_diff']:.2f}")
+        print(f"Fig 4 row {row}: agreement slice/diff = {rep['agree_slice_diff']:.2f}")
     fig.tight_layout()
     fig.savefig(FIG / "fig4_inspection.png", bbox_inches="tight")
     plt.close(fig)
 
 
 # ---------------------------------------------------------------------------
-def fig4_events(tmp):
+def fig5_events(tmp):
     s = "1950138"
     d = tmp / "ev"; (d / s).mkdir(parents=True)
     shutil.copy(EX / "oralReading" / s / f"{s}.asc", d / s)
@@ -227,7 +227,7 @@ def fig4_events(tmp):
 
 
 # ---------------------------------------------------------------------------
-def fig5_validation():
+def fig6_validation():
     acc = pd.read_csv(RES / "carr_accuracy.csv")
     acc = acc[acc.method != "slice"]   # Carr et al.'s slice gives the same assignments as pyemread_slice
     order = (acc.groupby("method").acc_kept.mean().sort_values(ascending=False).index.tolist())
@@ -281,7 +281,7 @@ def fig5_validation():
 
 
 # ---------------------------------------------------------------------------
-def fig6_measures():
+def fig2_measures():
     words = ["The", "old", "man", "sold", "his", "small", "boat", "today."]
     reg = pd.DataFrame({"WordID": range(1, 9), "Word": words, "length": [len(w) for w in words],
                         "line_no": 1, "x1_pos": [100 + 80 * k for k in range(8)],
@@ -330,12 +330,12 @@ def fig6_measures():
 if __name__ == "__main__":
     tmp = Path(tempfile.mkdtemp())
     fig1_architecture()
-    fig2_stimulus(tmp)
+    fig3_stimulus(tmp)
     data = process_examples(tmp)
-    fig3_inspection(data)
-    fig4_events(tmp)
-    fig5_validation()
-    em = fig6_measures()
+    fig4_inspection(data)
+    fig5_events(tmp)
+    fig6_validation()
+    em = fig2_measures()
     print(em.loc[[3, 4], ["ffixurt", "fpurt", "rpurt", "spurt", "tfurt"]])
     shutil.rmtree(tmp)
     print("Figures written to", FIG)
