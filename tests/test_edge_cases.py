@@ -134,3 +134,14 @@ def test_classify_lines_single_stimulus():
     assert (out["line_no"].to_numpy() == truth).all()
     assert out["region_no"].notna().all()
     assert len(crl_fix) == 3
+
+
+def test_classify_method_keys_are_checked():
+    reg, fix = _one_line_trial()
+    sac = pd.DataFrame(columns=ext.SAC_COLUMNS)
+    # a lowercase eye is accepted
+    _, _, out, _, _ = ext.classify_fixations(sac, fix, {"p": reg}, {(1, "r"): "NEAREST"})
+    assert (out["line_no"] == 1).all()
+    # a key that matches no trial (here a string trial id) is reported
+    with pytest.warns(UserWarning, match="matches no trial"):
+        ext.classify_fixations(sac, fix, {"p": reg}, {("1", "R"): "DIFF", "default": "SLICE"})

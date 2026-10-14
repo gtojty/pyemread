@@ -20,8 +20,9 @@ least recommended:
    coordinate system) in a documented structure.
 3. **Raw samples**, from which fixations are detected with a
    velocity-threshold (I-VT) or dispersion-threshold (I-DT) algorithm
-   (:func:`detect_events`). This route is intended for screen-based,
-   head-fixed recordings at sampling rates of roughly 250 Hz or more.
+   (:func:`detect_events`). This route is intended for gaze recorded in
+   screen coordinates (not from mobile trackers) at sampling rates of
+   roughly 250 Hz or more.
 
 Trials can be cut from a continuous recording with :func:`epoch`, using a
 table of trial onsets and offsets or the messages logged during recording
@@ -600,7 +601,7 @@ def detect_events(samples: pd.DataFrame, method: str = 'IVT',
                   merge_gap_ms: float = 75.0, merge_dist: float = 0.5,
                   min_fix_duration: float = 60.0, subj: str = '',
                   trial_type: Optional[str] = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Detect fixations and saccades in raw gaze samples (screen-based trackers).
+    """Detect fixations and saccades in raw gaze samples in screen coordinates.
 
     I-VT classifies samples by their angular velocity, estimated with a
     Savitzky-Golay filter (second-order polynomial over ``smooth_ms``).
@@ -612,8 +613,8 @@ def detect_events(samples: pd.DataFrame, method: str = 'IVT',
     than ``min_fix_duration`` are discarded. Saccades are the intervals
     between consecutive fixations that are not interrupted by a gap.
 
-    This detector is meant for head-fixed, screen-based recordings. For
-    head-mounted (mobile) trackers, use the fixations detected by the
+    This detector is meant for gaze recorded in screen coordinates. For
+    mobile trackers (e.g., eye-tracking glasses), use the fixations detected by the
     vendor's software (see :func:`pupil_core_surface_fixations` and
     :func:`neon_surface_fixations`).
 

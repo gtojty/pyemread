@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.3 (2026)
+
+- Character positions (`ffos`, `fpregchr`, `rpregchr`, `tffixos`) of the first and last word of each line: the one-character extension at the line edges, used for word assignment, no longer stretches the character slots of these words. Fixations in the extension count as the first or last position of the word. Durations, counts and all other measures are unchanged.
+- `classify_method` given as a dictionary: the eye in `(trial_id, eye)` keys may be given in either case, and a key that matches no trial raises a warning instead of being ignored silently.
+- Example data: their origin is described correctly. The participants are those of Gong and Shuai (2023), recorded with an EyeLink II in a different task (reading three multi-line passages aloud) that was not reported in that article (`examples/LICENSE-DATA.md`, README files, BIDS metadata, notebook). The original line-assignment heuristic is no longer attributed to Gong and Shuai (2023).
+- Documentation of `ext_generic.detect_events`: the detector is meant for gaze recorded in screen coordinates, not for mobile trackers.
+
 ## 2.2.2 (2026)
 
 - Example data: session dates and file-server paths were removed from the headers of the ASC files; the data are released by the author under CC BY 4.0 (`examples/LICENSE-DATA.md`; the BIDS example now declares `CC-BY-4.0`).

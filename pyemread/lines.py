@@ -24,7 +24,7 @@ Three assignment methods are provided.
     here to the line spacing and character width of the region file.
 
 ``"diff"``
-    The original pyemread heuristic (Gong & Shuai, 2023). Fixations are
+    The original pyemread heuristic. Fixations are
     walked in temporal order. Line changes are counted from horizontal
     displacements: a long leftward move is a return sweep to the next line,
     and a long rightward move from the start of a line is a regression to

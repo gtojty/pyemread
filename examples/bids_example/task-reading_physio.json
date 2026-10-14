@@ -1,6 +1,7 @@
 {
   "PhysioType": "eyetrack",
   "Manufacturer": "SR-Research",
+  "ManufacturersModelName": "EyeLink II",
   "Columns": [
     "timestamp",
     "x_coordinate",

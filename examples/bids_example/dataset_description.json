@@ -3,7 +3,7 @@
   "BIDSVersion": "1.11.0",
   "DatasetType": "raw",
   "License": "CC-BY-4.0",
-  "HowToAcknowledge": "Gong, T., & Shuai, L. (2023). Frontiers in Psychology, 13, 1006662.",
+  "HowToAcknowledge": "Please cite pyemread, https://doi.org/10.5281/zenodo.19622177.",
   "GeneratedBy": [
     {
       "Name": "pyemread examples/make_bids_example.py"

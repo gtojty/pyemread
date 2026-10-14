@@ -7,7 +7,7 @@ Run from the repository root:
 All outputs are written to ``tutorial_output/``. The script uses only the
 files distributed in ``examples/``: three English passages and the EyeLink
 recordings of three participants (1950138, 1950149, 1950168) reading them
-aloud (Gong & Shuai, 2023).
+aloud (see examples/LICENSE-DATA.md).
 """
 
 import shutil

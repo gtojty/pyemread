@@ -54,8 +54,9 @@ reading.
     Character position, within the word's area of interest, of the first
     first-pass fixation (0 = first position). The area of interest of a
     word that follows a space includes that space, so a fixation on its
-    first letter has position 1; fixations in the extension at a line edge
-    count as position 0.
+    first letter has position 1. Fixations in the extension at the start of
+    a line count as the first position, and those in the extension at the
+    end of a line as the last position of the word.
 ``ffixurt``
     First-fixation duration: duration of the first first-pass fixation (ms).
 ``spilover``
@@ -292,13 +293,24 @@ def compute_word_measures(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
     D = fx['duration'].to_numpy(float)
     n = len(fx)
 
+    x1_word = reg['x1_pos'].to_numpy(float)
+    x2_word = reg['x2_pos'].to_numpy(float)
+
+    def within_word(x: float, j: int) -> float:
+        # Character slots are taken from the unwidened word box, so that the
+        # extension of the first and last word of a line does not stretch
+        # them; fixations in the extension count as the first or last slot.
+        width = x2_word[j] - x1_word[j]
+        if width <= 0 or w_len[j] <= 0:
+            return 0.0
+        k = np.ceil((x - x1_word[j]) / width * w_len[j]) - 1
+        return float(min(max(k, 0), w_len[j] - 1))
+
     def charpos(i: int) -> float:
         if not np.isfinite(R[i]) or R[i] not in id_to_idx:
             return np.nan
         j = id_to_idx[R[i]]
-        width = mod_x2[j] - mod_x1[j]
-        within = max(np.ceil((X[i] - mod_x1[j]) / width * w_len[j]) - 1, 0) if width > 0 else 0
-        return chars_before[j] + within
+        return chars_before[j] + within_word(X[i], j)
 
     # position of each fixation in reading order: (line, x)
     out = {m: np.full(len(reg), np.nan) for m in WORD_MEASURES}
@@ -357,9 +369,7 @@ def compute_word_measures(fix_df: pd.DataFrame, reg_df: pd.DataFrame,
         out['fpurt'][j] = D[run].sum()
         out['fpcount'][j] = len(run)
         out['ffixurt'][j] = D[f0]
-        width = b - a
-        out['ffos'][j] = (max(np.ceil((X[f0] - a) / width * w_len[j]) - 1, 0)
-                          if width > 0 else 0)
+        out['ffos'][j] = within_word(X[f0], j)
         if end is not None:
             out['spilover'][j] = D[end]
         regress = end is not None and ((L[end] < wl) or (L[end] == wl and X[end] < a))

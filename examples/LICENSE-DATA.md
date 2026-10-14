@@ -3,21 +3,24 @@
 The example eye-movement recordings, audio recordings and derived example
 files in `examples/oralReading/`, `examples/fixation_table/` and
 `examples/bids_example/` were collected by the author at Haskins
-Laboratories for Gong and Shuai (2023), with an SR Research EyeLink tracker
-at 250 Hz. The author releases them under the Creative Commons Attribution
-4.0 International License (CC BY 4.0,
-https://creativecommons.org/licenses/by/4.0/). Please cite Gong and Shuai
-(2023) when you use them.
+Laboratories with an EyeLink II (SR Research) at 250 Hz. The participants
+are those of Gong and Shuai (2023), recorded in a different task: reading
+three multi-line English passages aloud. These passage-reading data were not
+reported in that article. The author releases them under the Creative
+Commons Attribution 4.0 International License (CC BY 4.0,
+https://creativecommons.org/licenses/by/4.0/). Please cite pyemread (see
+`CITATION.cff`) when you use them.
 
 The data were collected under a protocol approved by the Yale University
 Institutional Review Board, and participants gave informed consent, which
-covered public sharing. Participants are identified only by numeric codes;
+covered public sharing. The three participants whose recordings are
+distributed were adults. Participants are identified only by numeric codes;
 session dates and file paths were removed from the ASC files. The audio
 recordings contain the participants' voices; their public sharing was
 covered by the consent.
 
-The passages in `examples/textRasters/` were written for Gong and Shuai
-(2023); they and the bitmaps and region files rendered from them are
+The English passages were written for this passage-reading task; they and
+the bitmaps and region files rendered from them are
 licensed under CC BY 4.0 as well.
 
 ## Fonts for Chinese, Japanese and Korean

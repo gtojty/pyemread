@@ -36,6 +36,7 @@ import os
 import sys
 import fnmatch
 import re
+import warnings
 from typing import List, Tuple, Dict, Optional, Union, Any
 from pathlib import Path
 
@@ -1871,6 +1872,21 @@ def _crl_sac_from_lines(sac_df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows, columns=CRL_SAC_COLUMNS)
 
 
+def _warn_unmatched_method_keys(method_map: dict, fix_df: pd.DataFrame) -> None:
+    """Warn about per-trial keys of ``classify_method`` that match no trial."""
+    trials = set(fix_df['trial_id'].unique()) if 'trial_id' in fix_df else set()
+    pairs = set(zip(fix_df['trial_id'], fix_df['eye'])) if {'trial_id', 'eye'} <= set(fix_df) else set()
+    for key in method_map:
+        if key == 'default':
+            continue
+        if key in pairs or key in trials:
+            continue
+        warnings.warn(
+            f"classify_method key {key!r} matches no trial in the data and is ignored; "
+            f"use trial_id (e.g. {sorted(trials)[:3]}) or (trial_id, eye) with the eye "
+            f"as 'L' or 'R'.", UserWarning, stacklevel=3)
+
+
 def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
                        regions: Dict[str, pd.DataFrame],
                        classify_method=DEFAULT_LINE_METHOD,
@@ -1893,7 +1909,9 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
         One of ``'SLICE'``, ``'DIFF'``, ``'SAC'``, ``'NEAREST'``, ``'PROVIDED'``,
         or a dictionary that chooses the method per trial, keyed by
         ``(trial_id, eye)`` or ``trial_id``, with an optional ``'default'``
-        entry, e.g. ``{(1, 'R'): 'DIFF', 'default': 'SLICE'}``.
+        entry, e.g. ``{(1, 'R'): 'DIFF', 'default': 'SLICE'}``. The eye may
+        be given in either case; a key that matches no trial raises a
+        warning.
         ``'SLICE'``: the slice algorithm of Glandorf and Schroeder (2021)
         (:func:`pyemread.lines.assign_lines_slice`). ``'DIFF'``: the original
         pyemread heuristic based on horizontal displacements between
@@ -1940,8 +1958,13 @@ def classify_fixations(sac_df: pd.DataFrame, fix_df: pd.DataFrame,
     logged and should be inspected visually.
     """
     if isinstance(classify_method, dict):
-        method_map = {k: str(v).upper() for k, v in classify_method.items()}
+        method_map = {}
+        for k, v in classify_method.items():
+            if isinstance(k, tuple) and len(k) == 2 and isinstance(k[1], str):
+                k = (k[0], k[1].upper())          # (1, 'r') -> (1, 'R')
+            method_map[k] = str(v).upper()
         default = method_map.get('default', DEFAULT_LINE_METHOD)
+        _warn_unmatched_method_keys(method_map, fix_df)
     else:
         method_map, default = {}, str(classify_method).upper()
     for m in set(method_map.values()) | {default}:

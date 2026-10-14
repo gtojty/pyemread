@@ -28,7 +28,7 @@ module as ``from pyemread import cal``.
 
 import sys as _sys
 
-__version__ = "2.2.2"
+__version__ = "2.2.3"
 __author__ = "Tao Gong"
 __email__ = "gtojty@gmail.com"
 __license__ = "MIT"

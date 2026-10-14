@@ -9,7 +9,7 @@ be computed. :mod:`pyemread.lines` provides three methods:
     The slice algorithm of Glandorf and Schroeder (2021), adapted from the
     Python implementation of Carr et al. (2022).
 ``"diff"``
-    The original pyemread heuristic (Gong & Shuai, 2023), which counts line
+    The original pyemread heuristic, which counts line
     changes in temporal order from horizontal displacements.
 ``"nearest"``
     Nearest line center (no drift correction).

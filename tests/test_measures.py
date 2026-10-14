@@ -53,7 +53,18 @@ def test_character_positions_are_text_relative():
     # regression from w3 lands on w2 at x=165 -> character 2 of w2 (0-based),
     # preceded by the 4 characters of w1
     assert em.loc[3, "fpregchr"] == 4 + 2
-    assert em.loc[1, "ffos"] == 2          # x=120 in padded [90,140]: ceil(30/50*4) - 1
+    assert em.loc[1, "ffos"] == 1          # x=120 in [100,140], 10 px per character
+
+
+def test_character_positions_of_line_edge_words():
+    # The first and last words of a line are widened by one character for word
+    # assignment, but their character slots come from the unwidened box.
+    em = em_for([125, 175, 215, 255, 295], [200] * 5)
+    assert em.loc[1, "ffos"] == 2          # x=125 is the third character of w1
+    assert em.loc[5, "ffos"] == 3          # x=295 is the last character of w5
+    em = em_for([95, 175, 215, 255, 305], [200] * 5)
+    assert em.loc[1, "ffos"] == 0          # left extension: first position
+    assert em.loc[5, "ffos"] == 3          # right extension: last position
 
 
 def test_word_skipped_then_regressed_to_has_no_first_pass():

@@ -37,8 +37,8 @@ Eye-Tracking-BIDS
 
 Raw samples
     :func:`pyemread.ext_generic.read_samples` and
-    :func:`pyemread.ext_generic.detect_events` (I-VT, I-DT), for head-fixed,
-    screen-based recordings. Thresholds are given in degrees of visual angle
+    :func:`pyemread.ext_generic.detect_events` (I-VT, I-DT), for gaze
+    recorded in screen coordinates (not for mobile trackers). Thresholds are given in degrees of visual angle
     together with ``px_per_deg``.
 
 Vendor exports (experimental)

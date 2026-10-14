@@ -41,11 +41,11 @@ beh.mkdir(parents=True)
     "Name": "pyemread example: oral reading of three English passages (right eye)",
     "BIDSVersion": "1.11.0", "DatasetType": "raw",
     "License": "CC-BY-4.0",
-    "HowToAcknowledge": "Gong, T., & Shuai, L. (2023). Frontiers in Psychology, 13, 1006662.",
+    "HowToAcknowledge": "Please cite pyemread, https://doi.org/10.5281/zenodo.19622177.",
     "GeneratedBy": [{"Name": "pyemread examples/make_bids_example.py"}]}, indent=2))
 (OUT / "README").write_text(
     "Eye-Tracking-BIDS version of the right-eye data of participant 1950138 from the\n"
-    "pyemread example data (SR Research EyeLink, 250 Hz, binocular recording). Samples are in\n"
+    "pyemread example data (EyeLink II, 250 Hz, binocular recording). Samples are in\n"
     "screen pixels (1280 x 1024, origin top left). Fixations are those detected online by\n"
     "the EyeLink parser. Trials are delimited by TRIALID / TRIAL_RESULT messages, and the\n"
     "stimulus of each trial is given by the message '!V TRIAL_VAR picture_name <file>'.\n")
@@ -54,7 +54,7 @@ with gzip.open(beh / f"{stem}_physio.tsv.gz", "wt") as fh:
     pd.DataFrame({"t": st.time, "x": st.x_pos2, "y": st.y_pos2, "p": st.pup_size2}).to_csv(
         fh, sep="\t", header=False, index=False, na_rep="n/a")
 (OUT / "task-reading_physio.json").write_text(json.dumps({
-    "PhysioType": "eyetrack", "Manufacturer": "SR-Research",
+    "PhysioType": "eyetrack", "Manufacturer": "SR-Research", "ManufacturersModelName": "EyeLink II",
     "Columns": ["timestamp", "x_coordinate", "y_coordinate", "pupil_size"],
     "SamplingFrequency": 250, "SampleCoordinateSystem": "gaze-on-screen",
     "EnvironmentCoordinates": "top-left", "ScreenResolution": [1280, 1024],

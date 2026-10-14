@@ -6,7 +6,7 @@ review, as declared in the accompanying article. Apart from the adapted
 `slice` implementation (below), no other person wrote code for the package.
 
 **David Braze**, the author's supervisor at Haskins Laboratories, wrote the
-in-house C/C++ programs for eye-movement analysis from which pyemread was
+in-house C++ program for eye-movement analysis from which pyemread was
 originally derived, including the definitions of the word-level reading
 measures. He did not write code for this package.
 

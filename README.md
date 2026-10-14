@@ -20,14 +20,14 @@ Documentation: <https://gtojty.github.io/pyemread/>
 ## Installation
 
 ```bash
-pip install git+https://github.com/gtojty/pyemread.git@v2.2.2   # or omit @v2.2.2 for the latest version
+pip install git+https://github.com/gtojty/pyemread.git@v2.2.3   # or omit @v2.2.3 for the latest version
 ```
 
 Python 3.9 or later. The dependencies (NumPy, pandas, Pillow, matplotlib) are installed automatically; they are listed in `pyproject.toml` and `requirements.txt`. FFmpeg is needed only for animations. pyemread is not distributed on PyPI.
 
 ## Quick start
 
-The example data in `examples/oralReading/` are EyeLink recordings of three participants (`1950138`, `1950149`, `1950168`) reading three English passages aloud (Gong & Shuai, 2023). Clone the repository to use them:
+The example data in `examples/oralReading/` are EyeLink recordings of three participants (`1950138`, `1950149`, `1950168`) reading three English passages aloud, recorded at Haskins Laboratories (see `examples/LICENSE-DATA.md`). Clone the repository to use them:
 
 ```bash
 git clone https://github.com/gtojty/pyemread.git
@@ -78,7 +78,7 @@ Names from earlier versions (e.g. `ext.cal_crlSacFix`, `cal.cal_write_EM`, `gen.
 
 ## Citation
 
-Please cite the accompanying article (Gong, under review, *Behavior Research Methods*) and the software archive: Gong, T. (2026). pyemread (Version 2.2.2) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.19622177 (this DOI resolves to the latest version; each version also has its own DOI). See [CITATION.cff](CITATION.cff) and [AUTHORS.md](AUTHORS.md).
+Please cite the accompanying article (Gong, under review, *Behavior Research Methods*) and the software archive: Gong, T. (2026). pyemread (Version 2.2.3) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.19622177 (this DOI resolves to the latest version; each version also has its own DOI). See [CITATION.cff](CITATION.cff) and [AUTHORS.md](AUTHORS.md).
 
 ## License
 
